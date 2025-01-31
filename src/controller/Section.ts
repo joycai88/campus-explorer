@@ -34,29 +34,29 @@ export default class Section {
 		this.audit = audit;
 	}
 
-	public get(key: string): string {
-		if (key === "uuid") {
-			return this.uuid;
-		} else if (key === "id") {
-			return this.id;
-		} else if (key === "title") {
-			return this.title;
-		} else if (key === "instructor") {
-			return this.instructor;
-		} else if (key === "dept") {
-			return this.dept;
-		} else if (key === "year") {
-			return this.year;
-		} else if (key === "avg") {
-			return this.avg;
-		} else if (key === "pass") {
-			return this.pass;
-		} else if (key === "fail") {
-			return this.fail;
-		} else if (key === "audit") {
-			return this.audit;
-		} else {
-			throw new Error(`Property ${key} not found.`);
-		}
-	}
+	// public get(key: string): string {
+	// 	if (key === "uuid") {
+	// 		return this.uuid;
+	// 	} else if (key === "id") {
+	// 		return this.id;
+	// 	} else if (key === "title") {
+	// 		return this.title;
+	// 	} else if (key === "instructor") {
+	// 		return this.instructor;
+	// 	} else if (key === "dept") {
+	// 		return this.dept;
+	// 	} else if (key === "year") {
+	// 		return this.year;
+	// 	} else if (key === "avg") {
+	// 		return this.avg;
+	// 	} else if (key === "pass") {
+	// 		return this.pass;
+	// 	} else if (key === "fail") {
+	// 		return this.fail;
+	// 	} else if (key === "audit") {
+	// 		return this.audit;
+	// 	} else {
+	// 		throw new Error(`Property ${key} not found.`);
+	// 	}
+	// }
 }

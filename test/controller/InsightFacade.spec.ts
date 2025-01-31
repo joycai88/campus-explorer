@@ -11,8 +11,6 @@ import { clearDisk, getContentFromArchives, loadTestQuery } from "../TestUtil";
 
 import { expect, use } from "chai";
 import chaiAsPromised from "chai-as-promised";
-import Section from "../../src/controller/Section";
-
 use(chaiAsPromised);
 
 export interface ITestQuery {
@@ -327,36 +325,6 @@ describe("InsightFacade", function () {
 				]);
 			} catch (err) {
 				expect.fail(`Should not have thrown ${err}`);
-			}
-		});
-	});
-
-	describe("Section Class", function () {
-		let section: Section;
-
-		beforeEach(() => {
-			section = new Section("123", "001", "Intro to Programming", "Gregor", "CS", "2025", "85", "50", "5", "3");
-		});
-
-		it("should return the correct property value when get() is called with a valid key", () => {
-			expect(section.get("uuid")).to.equal("123");
-			expect(section.get("id")).to.equal("001");
-			expect(section.get("title")).to.equal("Intro to Programming");
-			expect(section.get("instructor")).to.equal("Gregor");
-			expect(section.get("dept")).to.equal("CS");
-			expect(section.get("year")).to.equal("2025");
-			expect(section.get("avg")).to.equal("85");
-			expect(section.get("pass")).to.equal("50");
-			expect(section.get("fail")).to.equal("5");
-			expect(section.get("audit")).to.equal("3");
-		});
-
-		it("should throw an error if get() called with an invalid key", () => {
-			try {
-				section.get("none");
-				expect.fail("Should have thrown error for invalid key");
-			} catch (err) {
-				expect(err).to.be.an.instanceOf(Error);
 			}
 		});
 	});
