@@ -91,7 +91,7 @@ module.exports = {
 		],
 		"@ubccpsc310/descriptive/no-async-promise-executor": "error",
 		"@ubccpsc310/descriptive/no-await-in-loop": "error",
-		"@ubccpsc310/descriptive/no-console": "warn",
+		// "@ubccpsc310/descriptive/no-console": "warn",
 		"@ubccpsc310/descriptive/no-floating-promises": [
 			"error",
 			{

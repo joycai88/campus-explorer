@@ -1,4 +1,11 @@
-import {IInsightFacade, InsightDatasetKind, InsightError, InsightResult, ResultTooLargeError, NotFoundError} from "../../src/controller/IInsightFacade";
+import {
+	IInsightFacade,
+	InsightDatasetKind,
+	InsightError,
+	InsightResult,
+	ResultTooLargeError,
+	NotFoundError,
+} from "../../src/controller/IInsightFacade";
 import InsightFacade from "../../src/controller/InsightFacade";
 import { clearDisk, getContentFromArchives, loadTestQuery } from "../TestUtil";
 
@@ -21,11 +28,10 @@ describe("InsightFacade", function () {
 	let sections: string;
 	let testSections: string;
 
-
 	before(async function () {
 		// This block runs once and loads the datasets.
 		sections = await getContentFromArchives("pair.zip");
-		testSections = await getContentFromArchives("test.zip")
+		testSections = await getContentFromArchives("test.zip");
 
 		// Just in case there is anything hanging around from a previous run of the test suite
 		await clearDisk();
@@ -334,8 +340,8 @@ describe("InsightFacade", function () {
 			if (!this.test) {
 				throw new Error(
 					"Invalid call to checkQuery." +
-					"Usage: 'checkQuery' must be passed as the second parameter of Mocha's it(..) function." +
-					"Do not invoke the function directly."
+						"Usage: 'checkQuery' must be passed as the second parameter of Mocha's it(..) function." +
+						"Do not invoke the function directly."
 				);
 			}
 			// Destructuring assignment to reduce property accesses

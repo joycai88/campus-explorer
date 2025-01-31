@@ -2,7 +2,7 @@ import { InsightDatasetKind, InsightError } from "./IInsightFacade";
 import Section from "./Section";
 import JSZip from "jszip";
 import InsightFacade from "./InsightFacade";
-import {Dataset} from "./Dataset";
+import { Dataset } from "./Dataset";
 
 export default class DatasetProcessor {
 	private insightFacade: InsightFacade;
@@ -13,15 +13,15 @@ export default class DatasetProcessor {
 
 	/**
 	 * Processes the dataset by validating, extracting, and converting its content into Section objects.
+	 * CITATION: Used AI tool: ChatGPT for help on parseSections method
 	 */
-
 
 	public async processDataset(id: string, content: string, kind: InsightDatasetKind): Promise<Dataset> {
 		// Validate the dataset input
 		await this.validateDataset(id, content, kind);
 
 		// Decode and extract the dataset content
-		const zip = await JSZip.loadAsync(content, {base64:true});
+		const zip = await JSZip.loadAsync(content, { base64: true });
 		const root = Object.keys(zip.files);
 		if (root[0] !== "courses/") {
 			throw new InsightError("Folder not named /courses");
@@ -93,22 +93,9 @@ export default class DatasetProcessor {
 		return Buffer.from(content, "base64");
 	}
 
-
-
 	// Convert JSON into Section class
 	private convertToSection(item: any): Section {
-		const requiredKeys = [
-			"id",
-			"Course",
-			"Title",
-			"Professor",
-			"Subject",
-			"Year",
-			"Avg",
-			"Pass",
-			"Fail",
-			"Audit",
-		];
+		const requiredKeys = ["id", "Course", "Title", "Professor", "Subject", "Year", "Avg", "Pass", "Fail", "Audit"];
 
 		// Throw error if missing required key
 		for (const key of requiredKeys) {

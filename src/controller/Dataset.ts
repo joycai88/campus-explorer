@@ -1,4 +1,4 @@
-import {InsightDatasetKind} from "./IInsightFacade";
+import { InsightDatasetKind } from "./IInsightFacade";
 import Section from "./Section";
 
 export class Dataset {

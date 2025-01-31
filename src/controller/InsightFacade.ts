@@ -4,10 +4,10 @@ import {
 	InsightDatasetKind,
 	InsightError,
 	InsightResult,
-	NotFoundError
+	NotFoundError,
 } from "./IInsightFacade";
 import DatasetProcessor from "./DatasetProcessor";
-import {Dataset} from "./Dataset";
+import { Dataset } from "./Dataset";
 
 /**
  * This is the main programmatic entry point for the project.
@@ -21,12 +21,12 @@ export default class InsightFacade implements IInsightFacade {
 
 	constructor() {
 		this.datasets = [];
-		this.dataMap = new Map<string, Dataset>;
+		this.dataMap = new Map<string, Dataset>();
 	}
 
 	public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
 		if (this.dataMap.has(id)) {
-			throw new InsightError("Dataset ID already exists")
+			throw new InsightError("Dataset ID already exists");
 		}
 
 		try {
@@ -37,7 +37,7 @@ export default class InsightFacade implements IInsightFacade {
 
 			return this.datasets;
 		} catch (err) {
-			throw new InsightError(`Failed to add dataset: ${err}`)
+			throw new InsightError(`Failed to add dataset: ${err}`);
 		}
 	}
 
@@ -51,7 +51,7 @@ export default class InsightFacade implements IInsightFacade {
 		}
 
 		this.dataMap.delete(id);
-		this.datasets = this.datasets.filter((datasetId) => datasetId !== id)
+		this.datasets = this.datasets.filter((datasetId) => datasetId !== id);
 
 		return id;
 	}

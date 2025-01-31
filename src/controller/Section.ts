@@ -59,7 +59,4 @@ export default class Section {
 			throw new Error(`Property ${key} not found.`);
 		}
 	}
-
-
 }
-
