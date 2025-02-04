@@ -1,3 +1,5 @@
+import fs from "fs-extra";
+import path from "path";
 import {
 	IInsightFacade,
 	InsightDataset,
@@ -7,35 +9,46 @@ import {
 	NotFoundError,
 } from "./IInsightFacade";
 import DatasetProcessor from "./DatasetProcessor";
-import { Dataset } from "./Dataset";
-
 /**
  * This is the main programmatic entry point for the project.
  * Method documentation is in IInsightFacade
  *
  */
 export default class InsightFacade implements IInsightFacade {
-	private datasetProcessor: DatasetProcessor = new DatasetProcessor(this);
-	public datasets: string[];
-	public dataMap: Map<string, Dataset>;
+	private datasetProcessor: DatasetProcessor;
+	public datasets: Map<string, InsightDataset>;
 
-	constructor() {
-		this.datasets = [];
-		this.dataMap = new Map<string, Dataset>();
+	constructor(dataDir: string = "./data") {
+		this.datasetProcessor = new DatasetProcessor(dataDir);
+		this.datasets = new Map();
+		this.loadDatasetMetadata();
+	}
+
+	private loadDatasetMetadata(): void {
+		if (fs.existsSync(this.datasetProcessor.dataDir)) {
+			const files = fs.readdirSync(this.datasetProcessor.dataDir);
+			for (const file of files) {
+				if (file.endsWith(".json")) {
+					const id = path.basename(file, ".json");
+					const dataset = fs.readJsonSync(path.join(this.datasetProcessor.dataDir, file));
+					this.datasets.set(id, { id, kind: dataset.kind, numRows: dataset.sections.length });
+				}
+			}
+		}
 	}
 
 	public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-		if (this.dataMap.has(id)) {
-			throw new InsightError("Dataset ID already exists");
+		if (this.datasets.has(id)) {
+			throw new InsightError(`Dataset with id ${id} already exists.`);
 		}
 
 		try {
 			const dataset = await this.datasetProcessor.processDataset(id, content, kind);
-			console.log(dataset);
-			this.dataMap.set(id, dataset);
-			this.datasets = Array.from(this.dataMap.keys());
+			// console.log(dataset);
+			await this.datasetProcessor.saveDatasetToDisk(id, dataset);
+			this.datasets.set(id, { id, kind, numRows: dataset.sections.length });
 
-			return this.datasets;
+			return Array.from(this.datasets.keys());
 		} catch (err) {
 			throw new InsightError(`Failed to add dataset: ${err}`);
 		}
@@ -46,13 +59,12 @@ export default class InsightFacade implements IInsightFacade {
 			throw new InsightError("Invalid dataset ID");
 		}
 
-		if (!this.dataMap.has(id)) {
+		if (!this.datasets.has(id)) {
 			throw new NotFoundError("Dataset not found");
 		}
+		await this.datasetProcessor.removeDatasetFromDisk(id);
 
-		this.dataMap.delete(id);
-		this.datasets = this.datasets.filter((datasetId) => datasetId !== id);
-
+		this.datasets.delete(id);
 		return id;
 	}
 
@@ -62,16 +74,6 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public async listDatasets(): Promise<InsightDataset[]> {
-		const datasets: InsightDataset[] = [];
-
-		for (const [id, dataset] of this.dataMap.entries()) {
-			datasets.push({
-				id,
-				kind: dataset.kind,
-				numRows: dataset.getNumRows(),
-			});
-		}
-
-		return datasets;
+		return Array.from(this.datasets.values());
 	}
 }
