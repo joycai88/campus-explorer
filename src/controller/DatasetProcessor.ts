@@ -1,14 +1,51 @@
+import fs from "fs-extra";
 import { InsightDatasetKind, InsightError } from "./IInsightFacade";
 import Section from "./Section";
 import JSZip from "jszip";
-import InsightFacade from "./InsightFacade";
 import { Dataset } from "./Dataset";
+import path from "path";
 
 export default class DatasetProcessor {
-	private insightFacade: InsightFacade;
+	public dataDir: string;
 
-	constructor(insightFacade: InsightFacade) {
-		this.insightFacade = insightFacade;
+	constructor(dataDir: string = "./data") {
+		this.dataDir = dataDir;
+		this.checkDataDir();
+	}
+
+	/**
+	 * Ensures proper caching of datasets
+	 * CITATION: Used AI tool: ChatGPT for help on some caching helper methods
+	 */
+
+	private checkDataDir(): void {
+		if (!fs.existsSync(this.dataDir)) {
+			fs.mkdirSync(this.dataDir, { recursive: true });
+		}
+	}
+
+	private getDatasetFilePath(id: string): string {
+		return path.join(this.dataDir, `${id}.json`);
+	}
+
+	public async saveDatasetToDisk(id: string, dataset: Dataset): Promise<void> {
+		const filePath = this.getDatasetFilePath(id);
+		await fs.writeJson(filePath, dataset);
+	}
+
+	public async loadDatasetFromDisk(id: string): Promise<Dataset | null> {
+		const filePath = this.getDatasetFilePath(id);
+		if (await fs.pathExists(filePath)) {
+			return await fs.readJson(filePath);
+		}
+		return null;
+	}
+
+	public async removeDatasetFromDisk(id: string): Promise<void> {
+		const filePath = this.getDatasetFilePath(id);
+		if (await fs.pathExists(filePath)) {
+			await fs.remove(filePath);
+		}
 	}
 
 	/**
@@ -18,6 +55,11 @@ export default class DatasetProcessor {
 
 	public async processDataset(id: string, content: string, kind: InsightDatasetKind): Promise<Dataset> {
 		// Validate the dataset input
+		const cachedDataset = await this.loadDatasetFromDisk(id);
+		if (cachedDataset) {
+			return cachedDataset;
+		}
+
 		await this.validateDataset(id, content, kind);
 
 		// Decode and extract the dataset content
@@ -95,7 +137,19 @@ export default class DatasetProcessor {
 
 	// Convert JSON into Section class
 	private convertToSection(item: any): Section {
-		const requiredKeys = ["id", "Course", "Title", "Professor", "Subject", "Year", "Avg", "Pass", "Fail", "Audit"];
+		const requiredKeys = [
+			"Title",
+			"Section",
+			"id",
+			"Professor",
+			"Audit",
+			"Year",
+			"Course",
+			"Pass",
+			"Fail",
+			"Avg",
+			"Subject",
+		];
 
 		// Throw error if missing required key
 		for (const key of requiredKeys) {
@@ -105,16 +159,16 @@ export default class DatasetProcessor {
 		}
 
 		return new Section(
-			item.uuid,
 			item.id,
-			item.title,
-			item.instructor,
-			item.dept,
-			item.year,
-			item.avg,
-			item.pass,
-			item.fail,
-			item.audit
+			item.Course,
+			item.Title,
+			item.Professor,
+			item.Subject,
+			item.Year,
+			item.Avg,
+			item.Pass,
+			item.Fail,
+			item.Audit
 		);
 	}
 }
