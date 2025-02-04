@@ -95,7 +95,7 @@ export default class DatasetProcessor {
 
 	// Convert JSON into Section class
 	private convertToSection(item: any): Section {
-		const requiredKeys = ["id", "Course", "Title", "Professor", "Subject", "Year", "Avg", "Pass", "Fail", "Audit"];
+		const requiredKeys = ["Title", "Section", "id", "Professor",  "Audit", "Year", "Course", "Pass", "Fail", "Avg", "Subject"];
 
 		// Throw error if missing required key
 		for (const key of requiredKeys) {
@@ -105,16 +105,16 @@ export default class DatasetProcessor {
 		}
 
 		return new Section(
-			item.uuid,
 			item.id,
-			item.title,
-			item.instructor,
-			item.dept,
-			item.year,
-			item.avg,
-			item.pass,
-			item.fail,
-			item.audit
+			item.Course,
+			item.Title,
+			item.Professor,
+			item.Subject,
+			item.Year,
+			item.Avg,
+			item.Pass,
+			item.Fail,
+			item.Audit
 		);
 	}
 }

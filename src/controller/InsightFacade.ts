@@ -31,7 +31,7 @@ export default class InsightFacade implements IInsightFacade {
 
 		try {
 			const dataset = await this.datasetProcessor.processDataset(id, content, kind);
-
+			console.log(dataset);
 			this.dataMap.set(id, dataset);
 			this.datasets = Array.from(this.dataMap.keys());
 

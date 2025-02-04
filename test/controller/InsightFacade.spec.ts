@@ -329,6 +329,21 @@ describe("InsightFacade", function () {
 		});
 	});
 
+	describe("Cache", function () {
+		beforeEach(async function () {
+			await clearDisk();
+			facade = new InsightFacade();
+			await facade.addDataset("test", testSections, InsightDatasetKind.Sections);
+		});
+
+		it("should be able to access dataset from new instance", async function () {
+			const facade2 = new InsightFacade();
+			const result = await facade2.removeDataset("test");
+
+			expect(result).to.be.a("string");
+		});
+	});
+
 	describe("PerformQuery", function () {
 		/**
 		 * Loads the TestQuery specified in the test name and asserts the behaviour of performQuery.
