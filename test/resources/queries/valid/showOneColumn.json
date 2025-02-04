@@ -1,0 +1,49 @@
+{
+	"title": "show one column",
+	"input": {
+		"WHERE": {
+			"OR": [
+				{
+					"AND": [
+						{
+							"GT": {
+								"sections_avg": 94
+							}
+						},
+						{
+							"IS": {
+								"sections_dept": "cpsc"
+							}
+						}
+					]
+				},
+				{
+					"EQ": {
+						"sections_avg": 100
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_avg"
+			],
+			"ORDER": "sections_avg"
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_avg": 94.5
+		},
+		{
+			"sections_avg": 94.5
+		},
+		{
+			"sections_avg": 95
+		},
+		{
+			"sections_avg": 95
+		}
+	]
+}

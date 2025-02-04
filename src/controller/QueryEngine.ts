@@ -1,0 +1,291 @@
+import { InsightError, InsightResult } from "./IInsightFacade";
+import InsightFacade from "./InsightFacade";
+import Section from "./Section";
+
+export interface IQuery {
+	where: any;
+	columns: any;
+	errorExpected: boolean;
+	expected: any;
+}
+
+export default class QueryEngine {
+	private parsedQuery: InsightResult[];
+	private datasetID: string;
+	private insightFacade: InsightFacade;
+
+	constructor(insightFacade: InsightFacade) {
+		this.parsedQuery = [];
+		this.datasetID = "";
+		this.insightFacade = insightFacade;
+	}
+
+	/**
+	 * Parse the WHERE block of the query
+	 */
+	public async handleWHERE(where: any): Promise<InsightResult[]> {
+		//if WHERE:{}, return everything
+		if (Object.keys(where).length === 0) {
+			return this.parsedQuery;
+		}
+
+		console.log(where);
+
+		const promises: Promise<void>[] = [];
+
+		//recurse through logic comparators in WHERE to filter options
+		for (const key in where) {
+			console.log(key);
+			if (key === "IS") {
+				promises.push(this.handleSComp(where[key]));
+			} else if (key === "GT" || key === "LT" || key === "EQ") {
+				promises.push(this.handleMComp(where[key], key));
+			}
+		}
+
+		//wait for all async functions to run
+		await Promise.all(promises);
+
+		return this.parsedQuery;
+	}
+
+	/**
+	 * Helper for handleWHERE to parse SCOMPARISON
+	 *
+	 * SCOMPARISON ::= 'IS:{' skey ': "' [*]? inputstring [*]? '" }'
+	 * Asterisks at the beginning or end of the inputstring should act as wildcards.
+	 */
+	private async handleSComp(scomp: any): Promise<void> {
+		//check that there is only one key
+		if (Object.keys(scomp).length > 1) {
+			throw new InsightError("IS should only have 1 key, has " + Object.keys(scomp).length);
+		}
+
+		const tempResults: InsightResult[] = [];
+
+		//check for valid structure
+		for (const [key, value] of Object.entries(scomp)) {
+			//check for correct dataset
+			if (key.split("_")[0] !== this.datasetID) {
+				throw new InsightError("Cannot query more than one dataset");
+			}
+			//check that value is a string
+			if (!(typeof value === "string")) {
+				throw new InsightError("Invalid value type in IS, should be string");
+			}
+			//remove all items that don't belong to the result
+			for (const res of this.parsedQuery) {
+				//check that type is correct
+				if (!(typeof res[key] === "string")) {
+					throw new InsightError("Invalid key " + key + " in IS");
+				}
+				// filter out incompatible results
+				if (this.isCompMatch(res[key], value)) {
+					tempResults.push(res);
+				}
+			}
+		}
+
+		this.parsedQuery = tempResults;
+
+		return;
+	}
+
+	/**
+	 * Private helper to determine if string is a match (wildcard handling)
+	 */
+	private isCompMatch(res: string, value: string): boolean {
+		const wc = value;
+		// Case 1: exact match
+		if (!wc.includes("*")) {
+			return true;
+		}
+
+		// Case 2: wildcard at the start
+		if (wc.startsWith("*")) {
+			//Case 3: wildcard at the start and end
+			if (wc.endsWith("*")) {
+				wc.replace("*", "");
+				return res.includes(wc);
+			}
+			wc.replace("*", "");
+			return res.endsWith(wc);
+		}
+		//Case 4: wildcard at the end
+		if (wc.endsWith("*")) {
+			wc.replace("*", "");
+			return res.startsWith(wc);
+		}
+
+		//If function gets here, the value we're comparing to is invalid
+		throw new InsightError("Asterisks (*) can only be the first or last characters of input strings");
+	}
+
+	/**
+	 * Helper for handleWHERE to parse MCOMPARISON
+	 */
+	private async handleMComp(mcomp: any, cType: string): Promise<void> {
+		//check that there is only one key
+		if (Object.keys(mcomp).length > 1) {
+			throw new InsightError(cType + " should only have 1 key, has " + Object.keys(mcomp).length);
+		}
+
+		const promises: Promise<void>[] = [];
+
+		//check for valid structure - MCOMPARISON ::= MCOMPARATOR ':{' mkey ':' number '}'
+		for (const [key, value] of Object.entries(mcomp)) {
+			//check for correct dataset
+			if (key.split("_")[0] !== this.datasetID) {
+				throw new InsightError("Cannot query more than one dataset");
+			}
+			//check that value is a number
+			if (!(typeof value === "number")) {
+				throw new InsightError("Invalid value type in " + cType + ", should be number");
+			}
+			//remove all items that don't belong to the result
+			if (cType === "GT") {
+				promises.push(this.handleGT(key, value));
+			} else if (cType === "LT") {
+				promises.push(this.handleLT(key, value));
+			} else if (cType === "EQ") {
+				promises.push(this.handleEQ(key, value));
+			}
+		}
+		await Promise.all(promises);
+
+		return;
+	}
+
+	/**
+	 * Parse GT mcomparison
+	 * If InsightResult[key] > value, then keep the InsightResult
+	 */
+	private async handleGT(key: string, value: number): Promise<void> {
+		const tempResult: InsightResult[] = [];
+		for (const res of this.parsedQuery) {
+			//check that we're getting a number back from dataset
+			if (!(typeof res[key] === "number")) {
+				throw new InsightError("Invalid key " + key + " in GT");
+			}
+			if (res[key] > value) {
+				tempResult.push(res);
+			}
+		}
+		this.parsedQuery = tempResult;
+	}
+
+	/**
+	 * Parse LT mcomparison
+	 * If InsightResult[key] < value, then keep the InsightResult
+	 */
+	private async handleLT(key: string, value: number): Promise<void> {
+		const tempResult: InsightResult[] = [];
+		for (const res of this.parsedQuery) {
+			//check that we're getting a number back from dataset
+			if (!(typeof res[key] === "number")) {
+				throw new InsightError("Invalid key " + key + " in LT");
+			}
+			if (res[key] < value) {
+				tempResult.push(res);
+			}
+		}
+		this.parsedQuery = tempResult;
+	}
+
+	/**
+	 * Parse EQ mcomparison
+	 * If InsightResult[key] === value, then keep the InsightResult
+	 */
+	private async handleEQ(key: string, value: number): Promise<void> {
+		const tempResult: InsightResult[] = [];
+		for (const res of this.parsedQuery) {
+			//check that we're getting a number back from dataset
+			if (!(typeof res[key] === "number")) {
+				throw new InsightError("Invalid key " + key + " in EQ");
+			}
+			if (res[key] === value) {
+				tempResult.push(res);
+			}
+		}
+		this.parsedQuery = tempResult;
+	}
+
+	/**
+	 * Parse the OPTIONS block of the query
+	 */
+	public async handleOPTIONS(options: any): Promise<InsightResult[]> {
+		//const columns: string[] = await this.handleCOLUMNS(options.columns);
+		//await this.handleORDER(options.order, columns);
+		await this.handleCOLUMNS(options.COLUMNS);
+		return this.parsedQuery;
+	}
+
+	/**
+	 * Parse the COLUMNS block of the query
+	 */
+	public async handleCOLUMNS(columns: any): Promise<InsightResult[]> {
+		//check if columns is an array
+		if (!Array.isArray(columns)) {
+			throw new InsightError("COLUMNS must be a non-empty array");
+		}
+
+		const parseColumns = columns as string[];
+
+		//check if columns is non-empty
+		if (parseColumns.length === 0) {
+			throw new InsightError("COLUMNS must be a non-empty array");
+		}
+
+		//Assign dataset id from first column key
+		this.datasetID = parseColumns[0].split("_")[0];
+
+		const keys: string[] = [];
+
+		//check that all keys are querying from the same dataset
+		//add column names to keys
+		for (const c of parseColumns) {
+			const key = c.split("_");
+			//check that dataset is the same
+			if (key[0] !== this.datasetID) {
+				throw new InsightError("Cannot query more than one dataset");
+			}
+			keys.push(key[1]);
+		}
+
+		//get all columns of interest from the dataset
+		const allSections: Section[] | undefined = this.insightFacade.dataMap.get(this.datasetID)?.sections;
+		if (!allSections) {
+			throw new InsightError("Dataset ID is invalid");
+		}
+		for (const section of allSections) {
+			let counter = 0;
+			const result: InsightResult = {};
+
+			for (const c of parseColumns) {
+				result[c] = (section as any)[keys[counter]];
+				counter += 1;
+			}
+
+			this.parsedQuery.push(result);
+		}
+
+		return this.parsedQuery;
+	}
+
+	/**
+	 * Parse the ORDER block of the query
+	 */
+	public async handleORDER(order: any, columns: string[]): Promise<InsightResult[]> {
+		//check if order is a string
+		if (typeof order !== "string") {
+			throw new InsightError("Invalid ORDER type");
+		}
+
+		//check if order exists in columns
+		if (!columns.includes(order)) {
+			throw new InsightError("ORDER key must be in COLUMNS");
+		}
+
+		return this.parsedQuery;
+	}
+}

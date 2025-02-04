@@ -1,0 +1,24 @@
+{
+	"title": "one section",
+	"input": {
+		"WHERE": {
+			"IS": {
+				"sections_dept": "test"
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_id"
+			],
+			"ORDER": "sections_dept"
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_dept": "test",
+			"sections_id": "100"
+		}
+	]
+}

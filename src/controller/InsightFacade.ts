@@ -5,8 +5,10 @@ import {
 	InsightError,
 	InsightResult,
 	NotFoundError,
+	ResultTooLargeError,
 } from "./IInsightFacade";
 import DatasetProcessor from "./DatasetProcessor";
+import QueryEngine from "./QueryEngine";
 import { Dataset } from "./Dataset";
 
 /**
@@ -18,6 +20,8 @@ export default class InsightFacade implements IInsightFacade {
 	private datasetProcessor: DatasetProcessor = new DatasetProcessor(this);
 	public datasets: string[];
 	public dataMap: Map<string, Dataset>;
+
+	private queryEngine: QueryEngine = new QueryEngine(this);
 
 	constructor() {
 		this.datasets = [];
@@ -57,8 +61,20 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
-		// TODO: Remove this once you implement the methods!
-		throw new Error(`InsightFacadeImpl::performQuery() is unimplemented! - query=${query};`);
+		//check that query is a JSON
+		if (typeof query !== "object" || query === null) {
+			throw new InsightError("Invalid query string");
+		}
+		const jsonQuery: any = query;
+		await this.queryEngine.handleOPTIONS(jsonQuery.OPTIONS);
+		const result = await this.queryEngine.handleWHERE(jsonQuery.WHERE);
+		const maxSize = 5000;
+		if (result.length > maxSize) {
+			throw new ResultTooLargeError(
+				"The result is too big. Only queries with a maximum " + "of 5000 results are supported."
+			);
+		}
+		return result;
 	}
 
 	public async listDatasets(): Promise<InsightDataset[]> {

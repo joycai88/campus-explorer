@@ -1,0 +1,19 @@
+{
+	"title": "easy_dept = a*b",
+	"input": {
+		"WHERE": {
+			"IS": {
+				"easy_dept": "a*b"
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"easy_id",
+				"easy_dept"
+			],
+			"ORDER": "easy_dept"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

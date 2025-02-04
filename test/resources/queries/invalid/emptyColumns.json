@@ -1,0 +1,16 @@
+{
+	"title": "empty columns",
+	"input": {
+		"WHERE": {
+			"IS": {
+				"sections_dept": "test"
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [],
+			"ORDER": ""
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

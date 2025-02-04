@@ -26,11 +26,13 @@ describe("InsightFacade", function () {
 	// Declare datasets used in tests. You should add more datasets like this!
 	let sections: string;
 	let testSections: string;
+	let easy: string;
 
 	before(async function () {
 		// This block runs once and loads the datasets.
 		sections = await getContentFromArchives("pair.zip");
 		testSections = await getContentFromArchives("test.zip");
+		easy = await getContentFromArchives("simplest.zip");
 
 		// Just in case there is anything hanging around from a previous run of the test suite
 		await clearDisk();
@@ -373,6 +375,7 @@ describe("InsightFacade", function () {
 			// Will *fail* if there is a problem reading ANY dataset.
 			const loadDatasetPromises: Promise<string[]>[] = [
 				facade.addDataset("sections", sections, InsightDatasetKind.Sections),
+				facade.addDataset("easy", easy, InsightDatasetKind.Sections),
 			];
 
 			try {
@@ -389,6 +392,40 @@ describe("InsightFacade", function () {
 		// Examples demonstrating how to test performQuery using the JSON Test Queries.
 		// The relative path to the query file must be given in square brackets.
 		it("[valid/simple.json] SELECT dept, avg WHERE avg > 97", checkQuery);
-		it("[invalid/invalid.json] Query missing WHERE", checkQuery);
+		// it("[valid/leftWildcard.json] easy_dept = a*", checkQuery);
+		// it("[valid/rightWildcard.json] easy_dept = *b", checkQuery);
+		//it("[valid/bothWildcard.json] easy_dept = *n*", checkQuery);
+		// it("[valid/noWildcard.json] easy_dept = aanb", checkQuery);
+		// it("[valid/logicComp.json] AND logic comparison", checkQuery);
+		// it("[valid/not.json] NOT logic comparison", checkQuery);
+		// it("[valid/passComp.json] pass <= 5", checkQuery);
+		// it("[valid/complex.json] complex query", checkQuery);
+		// it("[valid/repeatedCol.json] repeated COLUMN", checkQuery);
+		// it("[valid/allColumns.json] all columns", checkQuery);
+		// it("[valid/showOneColumn.json] show one column", checkQuery);
+		// it("[valid/emptyResults.json] empty results", checkQuery);
+		// it("[valid/capsValue.json] caps value", checkQuery);
+		// it("[valid/oneSection.json] one section", checkQuery);
+		// it("[valid/complexWildcard.json] complex wildcard", checkQuery);
+		// it("[valid/complexNot.json] complex not", checkQuery);
+
+		//it("[invalid/invalid.json] Query missing WHERE", checkQuery);
+		// it("[invalid/tooLarge.json] Query >= 5000 results", checkQuery);
+		// it("[invalid/noDataset.json] Query referencing unadded dataset", checkQuery);
+		// it("[invalid/twoDataset.json] Query referencing two datasets", checkQuery);
+		// it("[invalid/midWildcard.json] easy_dept = a*b", checkQuery);
+		// it("[invalid/badOrder.json] ORDER key not in COLUMNS", checkQuery);
+		// it("[invalid/badType.json] format of dept is not string", checkQuery);
+		// it("[invalid/EQBad.json] EQ with string comparison", checkQuery);
+		// it("[invalid/invalidDatasetKey.json] invalid dataset key", checkQuery);
+		// it("[invalid/missingColumns.json] missing columns", checkQuery);
+		// it("[invalid/missingOptions.json] missing options", checkQuery);
+		// it("[invalid/caseSensitive.json] case sensitive", checkQuery);
+		// it("[invalid/boolDatatype.json] bool datatype", checkQuery);
+		// it("[invalid/emptyColumns.json] empty columns", checkQuery);
+		// it("[valid/emptyWhere.json] empty where", checkQuery);
+		// it("[invalid/twoExistingDatasets.json] two existing datasets", checkQuery);
+		// it("[invalid/numberIS.json] number IS", checkQuery);
+		// it("[invalid/noQuery.json] no query", checkQuery);
 	});
 });

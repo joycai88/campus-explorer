@@ -1,0 +1,19 @@
+{
+	"title": "case sensitive",
+	"input": {
+		"WHERE": {
+			"GT": {
+				"sections_AVG": 101
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_avg"
+			],
+			"ORDER": "sections_dept"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

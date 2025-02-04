@@ -1,0 +1,19 @@
+{
+	"title": "format of dept is not string",
+	"input": {
+		"WHERE": {
+			"IS": {
+				"sections_id": 515
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_id",
+				"sections_dept"
+			],
+			"ORDER": "sections_dept"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}
