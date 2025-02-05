@@ -18,7 +18,7 @@ import QueryEngine from "./QueryEngine";
  *
  */
 export default class InsightFacade implements IInsightFacade {
-	private datasetProcessor: DatasetProcessor = new DatasetProcessor(this);
+	private datasetProcessor: DatasetProcessor;
 	public datasets: Map<string, InsightDataset>;
 
 	private queryEngine: QueryEngine = new QueryEngine(this);
@@ -79,8 +79,12 @@ export default class InsightFacade implements IInsightFacade {
 			throw new InsightError("Invalid query string");
 		}
 		const jsonQuery: any = query;
+		//handleOPTIONS sets up results
 		await this.queryEngine.handleOPTIONS(jsonQuery.OPTIONS);
+		//filters results based on user inputs
 		const result = await this.queryEngine.handleWHERE(jsonQuery.WHERE);
+
+		//check that size of results no bigger than 5000
 		const maxSize = 5000;
 		if (result.length > maxSize) {
 			throw new ResultTooLargeError(
