@@ -35,9 +35,9 @@ export default class InsightFacade implements IInsightFacade {
 
 	private async syncCache(): Promise<void> {
 		try {
-			await fs.ensureDir("./data");
+			await fs.ensureDir(this.dataDir);
 
-			const files = await fs.readdir("../data");
+			const files = await fs.readdir(this.dataDir);
 
 			// Process all files concurrently
 			await Promise.all(
