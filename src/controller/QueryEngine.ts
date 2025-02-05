@@ -13,6 +13,8 @@ export default class QueryEngine {
 	private parsedQuery: InsightResult[];
 	private datasetID: string;
 	private insightFacade: InsightFacade;
+	private sortKey: string;
+	private columns: string[];
 
 	//constants for EBNF validation
 	private filterKeys: string[] = ["GT", "LT", "EQ", "IS", "AND", "OR", "NOT"];
@@ -21,6 +23,8 @@ export default class QueryEngine {
 		this.parsedQuery = [];
 		this.datasetID = "";
 		this.insightFacade = insightFacade;
+		this.sortKey = "";
+		this.columns = [];
 	}
 
 	/**
@@ -52,6 +56,8 @@ export default class QueryEngine {
 		const final: InsightResult[][] = await Promise.all(promises);
 		this.parsedQuery = final[0];
 
+		await this.handleORDER(this.sortKey, this.columns);
+
 		return this.parsedQuery;
 	}
 
@@ -70,7 +76,7 @@ export default class QueryEngine {
 		}
 
 		//make sure key is a filter key
-		if (!(this.filterKeys.includes(Object.keys(neg)[0]))){
+		if (!this.filterKeys.includes(Object.keys(neg)[0])) {
 			throw new InsightError("Invalid filter key: " + Object.keys(neg)[0]);
 		}
 
@@ -78,8 +84,7 @@ export default class QueryEngine {
 		let allResults: InsightResult[] = this.parsedQuery;
 
 		//filter out any results that belong to notResults
-		allResults = allResults.filter((res) =>
-			notResults.some((currRes) => !(this.isEqual(res, currRes))));
+		allResults = allResults.filter((res) => notResults.some((currRes) => !this.isEqual(res, currRes)));
 
 		return allResults;
 	}
@@ -128,8 +133,7 @@ export default class QueryEngine {
 		//filter first array based on other arrays
 		for (let i = 1; i < allResults.length; i++) {
 			const curr = allResults[i];
-			andResult = andResult.filter((res) =>
-				curr.some((currRes) => this.isEqual(res, currRes)));
+			andResult = andResult.filter((res) => curr.some((currRes) => this.isEqual(res, currRes)));
 		}
 
 		return andResult;
@@ -150,8 +154,7 @@ export default class QueryEngine {
 		//add unique elements of other arrays to first array
 		for (let i = 1; i < allResults.length; i++) {
 			const curr = allResults[i];
-			orResult.concat(curr.filter((res) =>
-				orResult.some((currRes) => !(this.isEqual(res, currRes)))));
+			orResult.concat(curr.filter((res) => orResult.some((currRes) => !this.isEqual(res, currRes))));
 		}
 
 		return orResult;
@@ -341,16 +344,19 @@ export default class QueryEngine {
 	 * Parse the OPTIONS block of the query
 	 */
 	public async handleOPTIONS(options: any): Promise<InsightResult[]> {
-		//const columns: string[] = await this.handleCOLUMNS(options.columns);
-		//await this.handleORDER(options.order, columns);
-		await this.handleCOLUMNS(options.COLUMNS);
+		//check that options exists
+		if (options === undefined) {
+			throw new InsightError("Invalid query string");
+		}
+		const columns: string[] = await this.handleCOLUMNS(options.COLUMNS);
+		await this.handleORDER(options.ORDER, columns);
 		return this.parsedQuery;
 	}
 
 	/**
 	 * Parse the COLUMNS block of the query
 	 */
-	public async handleCOLUMNS(columns: any): Promise<InsightResult[]> {
+	public async handleCOLUMNS(columns: any): Promise<string[]> {
 		//check if columns is an array
 		if (!Array.isArray(columns)) {
 			throw new InsightError("COLUMNS must be a non-empty array");
@@ -395,8 +401,10 @@ export default class QueryEngine {
 
 			this.parsedQuery.push(result);
 		}
+		//TODO: you can probably look to optimize this
+		this.columns = columns;
 
-		return this.parsedQuery;
+		return columns;
 	}
 
 	/**
@@ -415,6 +423,8 @@ export default class QueryEngine {
 			throw new InsightError("ORDER key must be in COLUMNS");
 		}
 
+		this.sortKey = order;
+
 		//sort the parsedQuery result based on the database key
 		this.parsedQuery.sort((a, b) => {
 			const valueA = a[order];
@@ -430,7 +440,6 @@ export default class QueryEngine {
 				//error handling for this function to work
 				throw new InsightError(`Cannot compare values of type ${typeof valueA} and ${typeof valueB}`);
 			}
-
 		});
 
 		return this.parsedQuery;

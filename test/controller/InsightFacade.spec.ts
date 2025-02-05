@@ -419,8 +419,8 @@ describe("InsightFacade", function () {
 
 		// Examples demonstrating how to test performQuery using the JSON Test Queries.
 		// The relative path to the query file must be given in square brackets.
-		it("[valid/simple.json] SELECT dept, avg WHERE avg > 97", checkQuery);
-		// it("[valid/leftWildcard.json] easy_dept = a*", checkQuery);
+		//it("[valid/simple.json] SELECT dept, avg WHERE avg > 97", checkQuery);
+		//it("[valid/leftWildcard.json] easy_dept = a*", checkQuery);
 		// it("[valid/rightWildcard.json] easy_dept = *b", checkQuery);
 		//it("[valid/bothWildcard.json] easy_dept = *n*", checkQuery);
 		// it("[valid/noWildcard.json] easy_dept = aanb", checkQuery);
@@ -436,24 +436,24 @@ describe("InsightFacade", function () {
 		// it("[valid/oneSection.json] one section", checkQuery);
 		// it("[valid/complexWildcard.json] complex wildcard", checkQuery);
 		// it("[valid/complexNot.json] complex not", checkQuery);
+		//it("[valid/emptyWhere.json] empty where", checkQuery);
 
-		//it("[invalid/invalid.json] Query missing WHERE", checkQuery);
-		// it("[invalid/tooLarge.json] Query >= 5000 results", checkQuery);
-		// it("[invalid/noDataset.json] Query referencing unadded dataset", checkQuery);
-		// it("[invalid/twoDataset.json] Query referencing two datasets", checkQuery);
-		// it("[invalid/midWildcard.json] easy_dept = a*b", checkQuery);
-		// it("[invalid/badOrder.json] ORDER key not in COLUMNS", checkQuery);
-		// it("[invalid/badType.json] format of dept is not string", checkQuery);
-		// it("[invalid/EQBad.json] EQ with string comparison", checkQuery);
-		// it("[invalid/invalidDatasetKey.json] invalid dataset key", checkQuery);
-		// it("[invalid/missingColumns.json] missing columns", checkQuery);
-		// it("[invalid/missingOptions.json] missing options", checkQuery);
-		// it("[invalid/caseSensitive.json] case sensitive", checkQuery);
-		// it("[invalid/boolDatatype.json] bool datatype", checkQuery);
-		// it("[invalid/emptyColumns.json] empty columns", checkQuery);
-		// it("[valid/emptyWhere.json] empty where", checkQuery);
-		// it("[invalid/twoExistingDatasets.json] two existing datasets", checkQuery);
-		// it("[invalid/numberIS.json] number IS", checkQuery);
-		// it("[invalid/noQuery.json] no query", checkQuery);
+		it("[invalid/invalid.json] Query missing WHERE", checkQuery);
+		it("[invalid/tooLarge.json] Query >= 5000 results", checkQuery);
+		it("[invalid/noDataset.json] Query referencing unadded dataset", checkQuery);
+		it("[invalid/twoDataset.json] Query referencing two datasets", checkQuery);
+		it("[invalid/midWildcard.json] easy_dept = a*b", checkQuery);
+		it("[invalid/badOrder.json] ORDER key not in COLUMNS", checkQuery);
+		it("[invalid/badType.json] format of dept is not string", checkQuery);
+		it("[invalid/EQBad.json] EQ with string comparison", checkQuery);
+		it("[invalid/invalidDatasetKey.json] invalid dataset key", checkQuery);
+		it("[invalid/missingColumns.json] missing columns", checkQuery);
+		it("[invalid/missingOptions.json] missing options", checkQuery);
+		it("[invalid/caseSensitive.json] case sensitive", checkQuery);
+		it("[invalid/boolDatatype.json] bool datatype", checkQuery);
+		it("[invalid/emptyColumns.json] empty columns", checkQuery);
+		it("[invalid/twoExistingDatasets.json] two existing datasets", checkQuery);
+		it("[invalid/numberIS.json] number IS", checkQuery);
+		it("[invalid/noQuery.json] no query", checkQuery);
 	});
 });
