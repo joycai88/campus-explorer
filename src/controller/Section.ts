@@ -34,6 +34,36 @@ export default class Section {
 		this.audit = audit;
 	}
 
+	public toJSON(): object {
+		return {
+			uuid: this.uuid,
+			id: this.id,
+			title: this.title,
+			instructor: this.instructor,
+			dept: this.dept,
+			year: this.year,
+			avg: this.avg,
+			pass: this.pass,
+			fail: this.fail,
+			audit: this.audit,
+		};
+	}
+
+	public static fromJSON(json: any): Section {
+		return new Section(
+			json.uuid,
+			json.id,
+			json.title,
+			json.instructor,
+			json.subject,
+			json.year,
+			json.avg,
+			json.pass,
+			json.fail,
+			json.audit
+		);
+	}
+
 	// public get(key: string): string {
 	// 	if (key === "uuid") {
 	// 		return this.uuid;
