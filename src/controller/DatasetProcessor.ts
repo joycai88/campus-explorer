@@ -1,50 +1,50 @@
-import fs from "fs-extra";
+import path from "path";
 import { InsightDatasetKind, InsightError } from "./IInsightFacade";
 import Section from "./Section";
 import JSZip from "jszip";
 import { Dataset } from "./Dataset";
-import path from "path";
+import fs from "fs-extra";
 
 export default class DatasetProcessor {
-	public dataDir: string;
+	private dataDir: string;
 
-	constructor(dataDir: string = "./data") {
+	constructor(dataDir: string) {
 		this.dataDir = dataDir;
-		this.checkDataDir();
 	}
 
-	/**
-	 * Ensures proper caching of datasets
-	 * CITATION: Used AI tool: ChatGPT for help on some caching helper methods
-	 */
-
-	private checkDataDir(): void {
-		if (!fs.existsSync(this.dataDir)) {
-			fs.mkdirSync(this.dataDir, { recursive: true });
-		}
-	}
-
-	private getDatasetFilePath(id: string): string {
-		return path.join(this.dataDir, `${id}.json`);
-	}
-
-	public async saveDatasetToDisk(id: string, dataset: Dataset): Promise<void> {
-		const filePath = this.getDatasetFilePath(id);
-		await fs.writeJson(filePath, dataset);
-	}
-
-	public async loadDatasetFromDisk(id: string): Promise<Dataset | null> {
-		const filePath = this.getDatasetFilePath(id);
-		if (await fs.pathExists(filePath)) {
-			return await fs.readJson(filePath);
+	public async loadFromCache(id: string): Promise<Dataset | null> {
+		const cacheFilePath = path.join(this.dataDir, `${id}.txt`);
+		if (await fs.pathExists(cacheFilePath)) {
+			try {
+				const cachedData = await fs.readFile(cacheFilePath, "utf-8");
+				return Dataset.fromJSON(JSON.parse(cachedData));
+			} catch (err) {
+				console.log(`Failed to read cache file for dataset ${id}: ${err}`);
+				return null;
+			}
 		}
 		return null;
 	}
 
-	public async removeDatasetFromDisk(id: string): Promise<void> {
-		const filePath = this.getDatasetFilePath(id);
-		if (await fs.pathExists(filePath)) {
-			await fs.remove(filePath);
+	public async saveToCache(id: string, dataset: Dataset): Promise<void> {
+		const cacheFilePath = path.join(this.dataDir, `${id}.txt`);
+		try {
+			await fs.writeFile(cacheFilePath, JSON.stringify(dataset.toJSON()));
+		} catch (err) {
+			console.log(`Failed to save dataset ${id} to cache: ${err}`);
+			throw new InsightError(`Failed to cache dataset ${id}`);
+		}
+	}
+
+	public async removeFromCache(id: string): Promise<void> {
+		const cacheFilePath = path.join(this.dataDir, `${id}.txt`);
+		if (await fs.pathExists(cacheFilePath)) {
+			try {
+				await fs.remove(cacheFilePath);
+			} catch (err) {
+				console.log(`Failed to remove cache file for dataset ${id}: ${err}`);
+				throw new InsightError(`Failed to remove dataset ${id} from cache`);
+			}
 		}
 	}
 
@@ -55,10 +55,11 @@ export default class DatasetProcessor {
 
 	public async processDataset(id: string, content: string, kind: InsightDatasetKind): Promise<Dataset> {
 		// Validate the dataset input
-		const cachedDataset = await this.loadDatasetFromDisk(id);
-		if (cachedDataset) {
-			return cachedDataset;
-		}
+
+		// const cachedDataset = await this.loadFromCache(id);
+		// if (cachedDataset) {
+		// 	return cachedDataset;
+		// }
 
 		await this.validateDataset(id, content, kind);
 
@@ -83,7 +84,9 @@ export default class DatasetProcessor {
 		if (sections.length === 0) {
 			throw new InsightError("No valid sections to add.");
 		}
-		return new Dataset(id, sections, kind);
+		const dataset = new Dataset(id, sections, kind);
+		await this.saveToCache(id, dataset);
+		return dataset;
 	}
 
 	// Helper function to validate id, kind, content
