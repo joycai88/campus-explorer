@@ -12,6 +12,8 @@ import {
 import DatasetProcessor from "./DatasetProcessor";
 import QueryEngine from "./QueryEngine";
 
+import { Dataset } from "./Dataset";
+
 /**
  * This is the main programmatic entry point for the project.
  * Method documentation is in IInsightFacade
@@ -19,41 +21,69 @@ import QueryEngine from "./QueryEngine";
  */
 export default class InsightFacade implements IInsightFacade {
 	private datasetProcessor: DatasetProcessor;
-	public datasets: Map<string, InsightDataset>;
+	public datasets: string[];
+	public dataMap: Map<string, Dataset>;
+	public dataDir;
 
 	private queryEngine: QueryEngine = new QueryEngine(this);
 
 	constructor(dataDir: string = "./data") {
 		this.datasetProcessor = new DatasetProcessor(dataDir);
-		this.datasets = new Map();
-		this.loadDatasetMetadata();
+		this.dataDir = dataDir;
+		this.datasets = [];
+		this.dataMap = new Map<string, Dataset>();
+
+		// this.syncCache().catch((err) => {
+		// 	console.error(`Failed to synchronize cache: ${err}`);
+		//
+		// });
 	}
 
-	private loadDatasetMetadata(): void {
-		if (fs.existsSync(this.datasetProcessor.dataDir)) {
-			const files = fs.readdirSync(this.datasetProcessor.dataDir);
-			for (const file of files) {
-				if (file.endsWith(".json")) {
-					const id = path.basename(file, ".json");
-					const dataset = fs.readJsonSync(path.join(this.datasetProcessor.dataDir, file));
-					this.datasets.set(id, { id, kind: dataset.kind, numRows: dataset.sections.length });
-				}
-			}
+	private async syncCache(): Promise<void> {
+		try {
+			await fs.ensureDir(this.dataDir);
+
+			const files = await fs.readdir(this.dataDir);
+
+			// Process all files concurrently
+			await Promise.all(
+				files.map(async (file) => {
+					if (file.endsWith(".txt")) {
+						const id = file.replace(".txt", "");
+						try {
+							const dataset = await this.datasetProcessor.loadFromCache(id);
+							if (dataset) {
+								this.dataMap.set(id, dataset);
+								this.datasets.push(id);
+							}
+						} catch (err) {
+							console.error(`Failed to load dataset ${id} from cache: ${err}`);
+						}
+					}
+				})
+			);
+		} catch (err) {
+			console.error(`Failed to synchronize cache: ${err}`);
 		}
 	}
 
 	public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-		if (this.datasets.has(id)) {
-			throw new InsightError(`Dataset with id ${id} already exists.`);
+		// Wait for cache to sync
+		await this.syncCache();
+
+		if (this.dataMap.has(id)) {
+			throw new InsightError("Dataset ID already exists");
 		}
 
 		try {
 			const dataset = await this.datasetProcessor.processDataset(id, content, kind);
+			// console.log(dataset)
 			// console.log(dataset);
-			await this.datasetProcessor.saveDatasetToDisk(id, dataset);
-			this.datasets.set(id, { id, kind, numRows: dataset.sections.length });
+			this.dataMap.set(id, dataset);
+			this.datasets = Array.from(this.dataMap.keys());
 
-			return Array.from(this.datasets.keys());
+			await this.datasetProcessor.saveToCache(id, dataset);
+			return this.datasets;
 		} catch (err) {
 			throw new InsightError(`Failed to add dataset: ${err}`);
 		}
@@ -63,13 +93,18 @@ export default class InsightFacade implements IInsightFacade {
 		if (!id || id.trim() === "" || id.includes("_")) {
 			throw new InsightError("Invalid dataset ID");
 		}
+		// Wait for cache to sync before looking for ids in dataMap
+		await this.syncCache();
 
-		if (!this.datasets.has(id)) {
+		if (!this.dataMap.has(id)) {
 			throw new NotFoundError("Dataset not found");
 		}
-		await this.datasetProcessor.removeDatasetFromDisk(id);
 
-		this.datasets.delete(id);
+		this.dataMap.delete(id);
+		this.datasets = this.datasets.filter((datasetId) => datasetId !== id);
+
+		await this.datasetProcessor.removeFromCache(id);
+
 		return id;
 	}
 
@@ -95,6 +130,19 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public async listDatasets(): Promise<InsightDataset[]> {
-		return Array.from(this.datasets.values());
+		const datasets: InsightDataset[] = [];
+
+		// Wait for cache to sync
+		await this.syncCache();
+
+		for (const [id, dataset] of this.dataMap.entries()) {
+			datasets.push({
+				id,
+				kind: dataset.kind,
+				numRows: dataset.getNumRows(),
+			});
+		}
+
+		return datasets;
 	}
 }

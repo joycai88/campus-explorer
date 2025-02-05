@@ -338,7 +338,20 @@ describe("InsightFacade", function () {
 			await facade.addDataset("test", testSections, InsightDatasetKind.Sections);
 		});
 
-		it("should be able to access dataset from new instance", async function () {
+		it("should be able to list dataset from new instance", async function () {
+			const facade2 = new InsightFacade();
+			const result = await facade2.listDatasets();
+			expect(result).to.deep.equal([
+				{
+					id: "test",
+					kind: InsightDatasetKind.Sections,
+					numRows: 2,
+				},
+			]);
+			expect(result).to.be.an("array").that.has.lengthOf(1);
+		});
+
+		it("should be able to remove dataset from new instance", async function () {
 			const facade2 = new InsightFacade();
 			const result = await facade2.removeDataset("test");
 
