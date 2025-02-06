@@ -124,7 +124,7 @@ export default class QueryEngine {
 	/**
 	 * Helper to handle AND case for logic comparison
 	 *
-	 * Citation: Used ChatGPT for filter syntax
+	 * Citation: Used ChatGPT for filter syntax and performance improvements
 	 */
 	private handleAND(allResults: InsightResult[][]): InsightResult[] {
 		//if there is only one array, return
@@ -138,7 +138,9 @@ export default class QueryEngine {
 		//filter first array based on other arrays
 		for (let i = 1; i < allResults.length; i++) {
 			const curr = allResults[i];
-			andResult = andResult.filter((res) => curr.some((currRes) => this.isEqual(res, currRes)));
+			const currSet = new Set(curr.map((res) => JSON.stringify(res)));
+			andResult = andResult.filter((res) => currSet.has(JSON.stringify(res)));
+			//andResult = andResult.filter((res) => curr.some((currRes) => this.isEqual(res, currRes)));
 		}
 
 		return andResult;
@@ -146,6 +148,8 @@ export default class QueryEngine {
 
 	/**
 	 * Helper to handle OR case for logic comparison
+	 *
+	 * Citation: ChatGPT used for set performance improvement
 	 */
 	private handleOR(allResults: InsightResult[][]): InsightResult[] {
 		//if there is only one array, return
@@ -153,16 +157,14 @@ export default class QueryEngine {
 			return allResults[0];
 		}
 
-		//set first array as result array
-		let orResult: InsightResult[] = allResults[0];
-
-		//add unique elements of other arrays to first array
-		for (let i = 1; i < allResults.length; i++) {
-			const curr = allResults[i];
-			orResult = orResult.concat(curr.filter((res) => orResult.some((currRes) => !this.isEqual(res, currRes))));
+		const orResultSet = new Set<string>();
+		for (const results of allResults) {
+			for (const res of results) {
+				orResultSet.add(JSON.stringify(res));
+			}
 		}
 
-		return orResult;
+		return Array.from(orResultSet).map((res) => JSON.parse(res));
 	}
 
 	/**
