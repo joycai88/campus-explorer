@@ -115,11 +115,11 @@ export default class InsightFacade implements IInsightFacade {
 		}
 		const jsonQuery: any = query;
 		//handleOPTIONS sets up results
-		await this.queryEngine.handleOPTIONS(jsonQuery.OPTIONS);
+		this.queryEngine.handleOPTIONS(jsonQuery.OPTIONS);
 		//filters results based on user inputs
 		let result: InsightResult[] = [];
 		try {
-			result = await this.queryEngine.handleWHERE(jsonQuery.WHERE);
+			result = this.queryEngine.handleWHERE(jsonQuery.WHERE);
 		} catch (err) {
 			throw err;
 		} finally {

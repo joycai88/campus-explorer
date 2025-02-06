@@ -37,24 +37,24 @@ export default class QueryEngine {
 	/**
 	 * Parse the WHERE block of the query
 	 */
-	public async handleWHERE(where: any): Promise<InsightResult[]> {
+	public handleWHERE(where: any): InsightResult[] {
 		//if WHERE:{}, return everything
 		if (Object.keys(where).length === 0) {
 			this.parsedQuery = this.dataset;
-			return await this.finish();
+			return this.finish();
 		}
 
 		//override parsedQuery with new filtered result
-		this.parsedQuery = await this.parseTree(where);
+		this.parsedQuery = this.parseTree(where);
 
-		return await this.finish();
+		return this.finish();
 	}
 
 	/**
 	 * Function for recursion
 	 */
-	private async parseTree(where: any): Promise<InsightResult[]> {
-		const promises: Promise<InsightResult[]>[] = [];
+	private parseTree(where: any): InsightResult[] {
+		const promises: InsightResult[][] = [];
 
 		//recurse through logic comparators in WHERE to filter options
 		for (const key in where) {
@@ -68,9 +68,7 @@ export default class QueryEngine {
 				promises.push(this.handleNOT(where[key]));
 			}
 		}
-
-		const final: InsightResult[][] = await Promise.all(promises);
-		return final[0];
+		return promises[0];
 	}
 
 	/**
@@ -78,7 +76,7 @@ export default class QueryEngine {
 	 *
 	 * Citation: used ChatGPT to optimize filtering
 	 */
-	private async handleNOT(neg: any): Promise<InsightResult[]> {
+	private handleNOT(neg: any): InsightResult[] {
 		//make sure neg is an object
 		if (!(typeof neg === "object")) {
 			throw new InsightError("NOT must be object");
@@ -94,7 +92,7 @@ export default class QueryEngine {
 			throw new InsightError("Invalid filter key: " + Object.keys(neg)[0]);
 		}
 
-		const notResults: InsightResult[] = await this.parseTree(neg);
+		const notResults: InsightResult[] = this.parseTree(neg);
 		let allResults: InsightResult[] = this.dataset;
 
 		//filter out any results that belong to notResults
@@ -106,27 +104,21 @@ export default class QueryEngine {
 	/**
 	 * Helper for LOGICCOMPARISON
 	 */
-	private async handleLComp(lcomp: any, cType: string): Promise<InsightResult[]> {
+	private handleLComp(lcomp: any, cType: string): InsightResult[] {
 		//check that lcomp is a non-empty array
 		if (!Array.isArray(lcomp) || lcomp.length === 0) {
 			throw new InsightError("OR must be a non-empty array");
 		}
-		let tempResult: InsightResult[] = [];
-		const promises: Promise<InsightResult[]>[] = [];
 
-		for (const c of lcomp) {
-			promises.push(this.parseTree(c)); //recursive call
-		}
-
-		const allResults: InsightResult[][] = await Promise.all(promises);
+		const allResults: InsightResult[][] = lcomp.map((c: any) => this.parseTree(c));
 
 		//recursion should be done at this step
 		if (cType === "AND") {
-			tempResult = await this.handleAND(allResults);
+			return this.handleAND(allResults);
 		} else if (cType === "OR") {
-			tempResult = await this.handleOR(allResults);
+			return this.handleOR(allResults);
 		}
-		return tempResult;
+		return [];
 	}
 
 	/**
@@ -134,7 +126,7 @@ export default class QueryEngine {
 	 *
 	 * Citation: Used ChatGPT for filter syntax
 	 */
-	private async handleAND(allResults: InsightResult[][]): Promise<InsightResult[]> {
+	private handleAND(allResults: InsightResult[][]): InsightResult[] {
 		//if there is only one array, return
 		if (allResults.length === 1) {
 			return allResults[0];
@@ -155,7 +147,7 @@ export default class QueryEngine {
 	/**
 	 * Helper to handle OR case for logic comparison
 	 */
-	private async handleOR(allResults: InsightResult[][]): Promise<InsightResult[]> {
+	private handleOR(allResults: InsightResult[][]): InsightResult[] {
 		//if there is only one array, return
 		if (allResults.length === 1) {
 			return allResults[0];
@@ -201,7 +193,7 @@ export default class QueryEngine {
 	 * SCOMPARISON ::= 'IS:{' skey ': "' [*]? inputstring [*]? '" }'
 	 * Asterisks at the beginning or end of the inputstring should act as wildcards.
 	 */
-	private async handleSComp(scomp: any): Promise<InsightResult[]> {
+	private handleSComp(scomp: any): InsightResult[] {
 		//check that there is only one key
 		if (Object.keys(scomp).length > 1) {
 			throw new InsightError("IS should only have 1 key, has " + Object.keys(scomp).length);
@@ -268,13 +260,13 @@ export default class QueryEngine {
 	/**
 	 * Helper for handleWHERE to parse MCOMPARISON
 	 */
-	private async handleMComp(mcomp: any, cType: string): Promise<InsightResult[]> {
+	private handleMComp(mcomp: any, cType: string): InsightResult[] {
 		//check that there is only one key
 		if (Object.keys(mcomp).length > 1) {
 			throw new InsightError(cType + " should only have 1 key, has " + Object.keys(mcomp).length);
 		}
 
-		const promises: Promise<InsightResult[]>[] = [];
+		const promises: InsightResult[][] = [];
 
 		//check for valid structure - MCOMPARISON ::= MCOMPARATOR ':{' mkey ':' number '}'
 		for (const [key, value] of Object.entries(mcomp)) {
@@ -295,16 +287,15 @@ export default class QueryEngine {
 				promises.push(this.handleEQ(key, value));
 			}
 		}
-		const tempResult: InsightResult[][] = await Promise.all(promises);
 
-		return tempResult[0];
+		return promises[0];
 	}
 
 	/**
 	 * Parse GT mcomparison
 	 * If InsightResult[key] > value, then keep the InsightResult
 	 */
-	private async handleGT(key: string, value: number): Promise<InsightResult[]> {
+	private handleGT(key: string, value: number): InsightResult[] {
 		const tempResult: InsightResult[] = [];
 		for (const res of this.dataset) {
 			//check that we're getting a number back from dataset
@@ -322,7 +313,7 @@ export default class QueryEngine {
 	 * Parse LT mcomparison
 	 * If InsightResult[key] < value, then keep the InsightResult
 	 */
-	private async handleLT(key: string, value: number): Promise<InsightResult[]> {
+	private handleLT(key: string, value: number): InsightResult[] {
 		const tempResult: InsightResult[] = [];
 		for (const res of this.dataset) {
 			//check that we're getting a number back from dataset
@@ -340,7 +331,7 @@ export default class QueryEngine {
 	 * Parse EQ mcomparison
 	 * If InsightResult[key] === value, then keep the InsightResult
 	 */
-	private async handleEQ(key: string, value: number): Promise<InsightResult[]> {
+	private handleEQ(key: string, value: number): InsightResult[] {
 		const tempResult: InsightResult[] = [];
 		for (const res of this.dataset) {
 			//check that we're getting a number back from dataset
@@ -357,12 +348,12 @@ export default class QueryEngine {
 	/**
 	 * Parse the OPTIONS block of the query
 	 */
-	public async handleOPTIONS(options: any): Promise<InsightResult[]> {
+	public handleOPTIONS(options: any): InsightResult[] {
 		//check that options exists
 		if (options === undefined) {
 			throw new InsightError("Invalid query string");
 		}
-		this.columns = await this.handleCOLUMNS(options.COLUMNS);
+		this.columns = this.handleCOLUMNS(options.COLUMNS);
 		this.sortKey = options.ORDER;
 		return this.parsedQuery;
 	}
@@ -370,7 +361,7 @@ export default class QueryEngine {
 	/**
 	 * Ending work such as filtering columns & ordering
 	 */
-	public async finish(): Promise<InsightResult[]> {
+	public finish(): InsightResult[] {
 		const tempResult: InsightResult[] = [];
 
 		for (const res of this.parsedQuery) {
@@ -385,7 +376,7 @@ export default class QueryEngine {
 		}
 
 		this.parsedQuery = tempResult;
-		await this.handleORDER(this.sortKey, this.columns);
+		this.handleORDER(this.sortKey, this.columns);
 
 		return this.parsedQuery;
 	}
@@ -393,7 +384,7 @@ export default class QueryEngine {
 	/**
 	 * Parse the COLUMNS block of the query
 	 */
-	public async handleCOLUMNS(columns: any): Promise<string[]> {
+	public handleCOLUMNS(columns: any): string[] {
 		//check if columns is an array
 		if (!Array.isArray(columns)) {
 			throw new InsightError("COLUMNS must be a non-empty array");
@@ -451,7 +442,7 @@ export default class QueryEngine {
 	 *
 	 * Citation: ChatGPT for help on using Array sort()
 	 */
-	public async handleORDER(order: any, columns: string[]): Promise<InsightResult[]> {
+	public handleORDER(order: any, columns: string[]): InsightResult[] {
 		//check if order is a string
 		if (typeof order !== "string") {
 			throw new InsightError("Invalid ORDER type");
