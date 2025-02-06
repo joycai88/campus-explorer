@@ -2,19 +2,13 @@ import { InsightError, InsightResult } from "./IInsightFacade";
 import InsightFacade from "./InsightFacade";
 import Section from "./Section";
 
-export interface IQuery {
-	where: any;
-	columns: any;
-	errorExpected: boolean;
-	expected: any;
-}
-
 export default class QueryEngine {
 	private parsedQuery: InsightResult[];
 	private datasetID: string;
 	private insightFacade: InsightFacade;
 	private sortKey: string;
 	private columns: string[];
+	private dataset: InsightResult[] = [];
 
 	//constants for EBNF validation
 	private filterKeys: string[] = ["GT", "LT", "EQ", "IS", "AND", "OR", "NOT"];
@@ -31,6 +25,21 @@ export default class QueryEngine {
 	/**
 	 * Set up initial structure
 	 */
+	public async setUp(): Promise<void> {
+		const allSections: Section[] | undefined = this.insightFacade.dataMap.get(this.datasetID)?.sections;
+
+		if (!allSections) {
+			throw new InsightError("Dataset ID is invalid");
+		}
+
+		for (const section of allSections) {
+			const result: InsightResult = {};
+			for (const column of this.allColumns) {
+				result[column] = (section as any)[column];
+			}
+			this.dataset.push(result);
+		}
+	}
 
 	/**
 	 * Clean up
@@ -83,6 +92,8 @@ export default class QueryEngine {
 
 	/**
 	 * Helper for NEGATION
+	 *
+	 * Citation: used ChatGPT to optimize filtering
 	 */
 	private async handleNOT(neg: any): Promise<InsightResult[]> {
 		//make sure neg is an object
@@ -104,7 +115,8 @@ export default class QueryEngine {
 		let allResults: InsightResult[] = this.parsedQuery;
 
 		//filter out any results that belong to notResults
-		allResults = allResults.filter((res) => notResults.some((currRes) => !this.isEqual(res, currRes)));
+		const notResultsSet = new Set(notResults.map(res => JSON.stringify(res)));
+		allResults = allResults.filter(res => !notResultsSet.has(JSON.stringify(res)));
 		return allResults;
 	}
 
@@ -167,12 +179,12 @@ export default class QueryEngine {
 		}
 
 		//set first array as result array
-		const orResult: InsightResult[] = allResults[0];
+		let orResult: InsightResult[] = allResults[0];
 
 		//add unique elements of other arrays to first array
 		for (let i = 1; i < allResults.length; i++) {
 			const curr = allResults[i];
-			orResult.concat(curr.filter((res) => orResult.some((currRes) => !this.isEqual(res, currRes))));
+			orResult = orResult.concat(curr.filter((res) => orResult.some((currRes) => !this.isEqual(res, currRes))));
 		}
 
 		return orResult;

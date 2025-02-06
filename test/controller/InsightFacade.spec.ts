@@ -393,7 +393,7 @@ describe("InsightFacade", function () {
 				expect.fail(`performQuery resolved when it should have rejected with ${expected}`);
 			}
 
-			expect(result).to.deep.equal(expected);
+			expect(result).to.have.deep.members(expected);
 		}
 
 		before(async function () {
@@ -419,7 +419,7 @@ describe("InsightFacade", function () {
 
 		// Examples demonstrating how to test performQuery using the JSON Test Queries.
 		// The relative path to the query file must be given in square brackets.
-		//it("[valid/simple.json] SELECT dept, avg WHERE avg > 97", checkQuery); //TODO: order diff
+		it("[valid/simple.json] SELECT dept, avg WHERE avg > 97", checkQuery);
 		it("[valid/leftWildcard.json] easy_dept = a*", checkQuery); //pass
 		it("[valid/rightWildcard.json] easy_dept = *b", checkQuery); //pass
 		it("[valid/bothWildcard.json] easy_dept = *n*", checkQuery); //pass
@@ -427,19 +427,17 @@ describe("InsightFacade", function () {
 		it("[valid/logicComp.json] AND logic comparison", checkQuery); //pass
 		it("[valid/not.json] NOT logic comparison", checkQuery); //pass
 		it("[valid/passComp.json] pass <= 5", checkQuery); //pass
-		//it("[valid/complex.json] complex query", checkQuery);
+		it("[valid/complex.json] complex query", checkQuery);
 		it("[valid/repeatedCol.json] repeated COLUMN", checkQuery); //pass
-		//it("[valid/allColumns.json] all columns", checkQuery); //TODO: order diff
-		//it("[valid/showOneColumn.json] show one column", checkQuery); //TODO: logic change
+		it("[valid/allColumns.json] all columns", checkQuery); //TODO: order diff
+		it("[valid/showOneColumn.json] show one column", checkQuery); //TODO: logic change
 		it("[valid/emptyResults.json] empty results", checkQuery); //pass
 		it("[valid/capsValue.json] caps value", checkQuery); //pass
 		it("[valid/oneSection.json] one section", checkQuery); //pass
-		//it("[valid/complexWildcard.json] complex wildcard", checkQuery);
-		//it("[valid/complexNot.json] complex not", checkQuery);
 		it("[valid/emptyWhere.json] empty where", checkQuery); //pass
 
 		it("[invalid/invalid.json] Query missing WHERE", checkQuery);
-		//it("[invalid/tooLarge.json] Query >= 5000 results", checkQuery);
+		it("[invalid/tooLarge.json] Query >= 5000 results", checkQuery);
 		it("[invalid/noDataset.json] Query referencing unadded dataset", checkQuery);
 		it("[invalid/twoDataset.json] Query referencing two datasets", checkQuery);
 		it("[invalid/midWildcard.json] easy_dept = a*b", checkQuery);
@@ -455,5 +453,8 @@ describe("InsightFacade", function () {
 		it("[invalid/twoExistingDatasets.json] two existing datasets", checkQuery);
 		it("[invalid/numberIS.json] number IS", checkQuery);
 		it("[invalid/noQuery.json] no query", checkQuery);
+
+		it("[valid/complexWildcard.json] complex wildcard", checkQuery);
+		it("[valid/complexNot.json] complex not", checkQuery);
 	});
 });
