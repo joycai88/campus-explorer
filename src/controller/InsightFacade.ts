@@ -118,6 +118,7 @@ export default class InsightFacade implements IInsightFacade {
 		await this.queryEngine.handleOPTIONS(jsonQuery.OPTIONS);
 		//filters results based on user inputs
 		const result = await this.queryEngine.handleWHERE(jsonQuery.WHERE);
+		this.queryEngine.cleanUp();
 
 		//check that size of results no bigger than 5000
 		const maxSize = 5000;

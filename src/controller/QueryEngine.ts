@@ -33,6 +33,16 @@ export default class QueryEngine {
 	 */
 
 	/**
+	 * Clean up
+	 */
+	public cleanUp(): void {
+		this.parsedQuery = [];
+		this.datasetID = "";
+		this.sortKey = "";
+		this.columns = [];
+	}
+
+	/**
 	 * Parse the WHERE block of the query
 	 */
 	public async handleWHERE(where: any): Promise<InsightResult[]> {
