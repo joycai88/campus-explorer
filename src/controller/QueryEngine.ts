@@ -8,7 +8,7 @@ export default class QueryEngine {
 	private insightFacade: InsightFacade;
 	private sortKey: string;
 	private columns: string[];
-	private dataset: InsightResult[] = [];
+	private dataset: InsightResult[];
 
 	//constants for EBNF validation
 	private filterKeys: string[] = ["GT", "LT", "EQ", "IS", "AND", "OR", "NOT"];
@@ -20,25 +20,7 @@ export default class QueryEngine {
 		this.insightFacade = insightFacade;
 		this.sortKey = "";
 		this.columns = [];
-	}
-
-	/**
-	 * Set up initial structure
-	 */
-	public async setUp(): Promise<void> {
-		const allSections: Section[] | undefined = this.insightFacade.dataMap.get(this.datasetID)?.sections;
-
-		if (!allSections) {
-			throw new InsightError("Dataset ID is invalid");
-		}
-
-		for (const section of allSections) {
-			const result: InsightResult = {};
-			for (const column of this.allColumns) {
-				result[column] = (section as any)[column];
-			}
-			this.dataset.push(result);
-		}
+		this.dataset = [];
 	}
 
 	/**
@@ -49,6 +31,7 @@ export default class QueryEngine {
 		this.datasetID = "";
 		this.sortKey = "";
 		this.columns = [];
+		this.dataset = [];
 	}
 
 	/**
@@ -57,14 +40,14 @@ export default class QueryEngine {
 	public async handleWHERE(where: any): Promise<InsightResult[]> {
 		//if WHERE:{}, return everything
 		if (Object.keys(where).length === 0) {
-			return this.parsedQuery;
+			this.parsedQuery = this.dataset;
+			return await this.finish();
 		}
 
 		//override parsedQuery with new filtered result
 		this.parsedQuery = await this.parseTree(where);
 
-		await this.handleORDER(this.sortKey, this.columns);
-		return this.parsedQuery;
+		return await this.finish();
 	}
 
 	/**
@@ -112,11 +95,11 @@ export default class QueryEngine {
 		}
 
 		const notResults: InsightResult[] = await this.parseTree(neg);
-		let allResults: InsightResult[] = this.parsedQuery;
+		let allResults: InsightResult[] = this.dataset;
 
 		//filter out any results that belong to notResults
-		const notResultsSet = new Set(notResults.map(res => JSON.stringify(res)));
-		allResults = allResults.filter(res => !notResultsSet.has(JSON.stringify(res)));
+		const notResultsSet = new Set(notResults.map((res) => JSON.stringify(res)));
+		allResults = allResults.filter((res) => !notResultsSet.has(JSON.stringify(res)));
 		return allResults;
 	}
 
@@ -237,7 +220,7 @@ export default class QueryEngine {
 				throw new InsightError("Invalid value type in IS, should be string");
 			}
 			//remove all items that don't belong to the result
-			for (const res of this.parsedQuery) {
+			for (const res of this.dataset) {
 				//check that type is correct
 				if (!(typeof res[key] === "string")) {
 					throw new InsightError("Invalid key " + key + " in IS");
@@ -323,7 +306,7 @@ export default class QueryEngine {
 	 */
 	private async handleGT(key: string, value: number): Promise<InsightResult[]> {
 		const tempResult: InsightResult[] = [];
-		for (const res of this.parsedQuery) {
+		for (const res of this.dataset) {
 			//check that we're getting a number back from dataset
 			if (!(typeof res[key] === "number")) {
 				throw new InsightError("Invalid key " + key + " in GT");
@@ -341,7 +324,7 @@ export default class QueryEngine {
 	 */
 	private async handleLT(key: string, value: number): Promise<InsightResult[]> {
 		const tempResult: InsightResult[] = [];
-		for (const res of this.parsedQuery) {
+		for (const res of this.dataset) {
 			//check that we're getting a number back from dataset
 			if (!(typeof res[key] === "number")) {
 				throw new InsightError("Invalid key " + key + " in LT");
@@ -359,7 +342,7 @@ export default class QueryEngine {
 	 */
 	private async handleEQ(key: string, value: number): Promise<InsightResult[]> {
 		const tempResult: InsightResult[] = [];
-		for (const res of this.parsedQuery) {
+		for (const res of this.dataset) {
 			//check that we're getting a number back from dataset
 			if (!(typeof res[key] === "number")) {
 				throw new InsightError("Invalid key " + key + " in EQ");
@@ -379,8 +362,31 @@ export default class QueryEngine {
 		if (options === undefined) {
 			throw new InsightError("Invalid query string");
 		}
-		const columns: string[] = await this.handleCOLUMNS(options.COLUMNS);
-		await this.handleORDER(options.ORDER, columns);
+		this.columns = await this.handleCOLUMNS(options.COLUMNS);
+		this.sortKey = options.ORDER;
+		return this.parsedQuery;
+	}
+
+	/**
+	 * Ending work such as filtering columns & ordering
+	 */
+	public async finish(): Promise<InsightResult[]> {
+		const tempResult: InsightResult[] = [];
+
+		for (const res of this.parsedQuery) {
+			const result: InsightResult = {};
+
+			for (const [key, value] of Object.entries(res)) {
+				if (this.columns.includes(key)) {
+					result[key] = value;
+				}
+			}
+			tempResult.push(result);
+		}
+
+		this.parsedQuery = tempResult;
+		await this.handleORDER(this.sortKey, this.columns);
+
 		return this.parsedQuery;
 	}
 
@@ -394,6 +400,7 @@ export default class QueryEngine {
 		}
 
 		const parseColumns = columns as string[];
+		this.columns = columns;
 
 		//check if columns is non-empty
 		if (parseColumns.length === 0) {
@@ -403,7 +410,7 @@ export default class QueryEngine {
 		//Assign dataset id from first column key
 		this.datasetID = parseColumns[0].split("_")[0];
 
-		const keys: string[] = [];
+		//const keys: string[] = [];
 
 		//check that all keys are querying from the same dataset
 		//add column names to keys
@@ -413,27 +420,30 @@ export default class QueryEngine {
 			if (key[0] !== this.datasetID) {
 				throw new InsightError("Cannot query more than one dataset");
 			}
-			keys.push(key[1]);
+			//check that key is a valid column
+			if (!this.allColumns.includes(key[1])) {
+				throw new InsightError("Invalid key " + c + "in COLUMNS");
+			}
+			//keys.push(key[1]);
 		}
 
 		//get all columns of interest from the dataset
 		const allSections: Section[] | undefined = this.insightFacade.dataMap.get(this.datasetID)?.sections;
+
 		if (!allSections) {
 			throw new InsightError("Dataset ID is invalid");
 		}
-		for (const section of allSections) {
-			let counter = 0;
-			const result: InsightResult = {};
 
-			for (const c of parseColumns) {
-				result[c] = (section as any)[keys[counter]];
-				counter += 1;
+		//setup whole dataset
+		for (const section of allSections) {
+			const result: InsightResult = {};
+			for (const column of this.allColumns) {
+				result[this.datasetID + "_" + column] = (section as any)[column];
 			}
-			this.parsedQuery.push(result);
+			this.dataset.push(result);
 		}
-		//TODO: you can probably look to optimize this
-		this.columns = columns;
-		return columns;
+
+		return this.columns;
 	}
 
 	/**
@@ -452,7 +462,7 @@ export default class QueryEngine {
 			throw new InsightError("ORDER key must be in COLUMNS");
 		}
 
-		this.sortKey = order;
+		//this.sortKey = order;
 
 		//sort the parsedQuery result based on the database key
 		this.parsedQuery.sort((a, b) => {

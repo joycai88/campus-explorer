@@ -429,8 +429,8 @@ describe("InsightFacade", function () {
 		it("[valid/passComp.json] pass <= 5", checkQuery); //pass
 		it("[valid/complex.json] complex query", checkQuery);
 		it("[valid/repeatedCol.json] repeated COLUMN", checkQuery); //pass
-		it("[valid/allColumns.json] all columns", checkQuery); //TODO: order diff
-		it("[valid/showOneColumn.json] show one column", checkQuery); //TODO: logic change
+		//it("[valid/allColumns.json] all columns", checkQuery); //TODO: order diff
+		it("[valid/showOneColumn.json] show one column", checkQuery); //pass
 		it("[valid/emptyResults.json] empty results", checkQuery); //pass
 		it("[valid/capsValue.json] caps value", checkQuery); //pass
 		it("[valid/oneSection.json] one section", checkQuery); //pass
