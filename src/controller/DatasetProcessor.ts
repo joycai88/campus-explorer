@@ -161,6 +161,11 @@ export default class DatasetProcessor {
 			}
 		}
 
+		// Convert Year to 1900 if Section is overall
+		if (item.Section === "overall") {
+			item.Year = 1900;
+		}
+
 		return new Section(
 			item.id,
 			item.Course,
