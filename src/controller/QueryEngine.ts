@@ -18,6 +18,7 @@ export default class QueryEngine {
 
 	//constants for EBNF validation
 	private filterKeys: string[] = ["GT", "LT", "EQ", "IS", "AND", "OR", "NOT"];
+	private allColumns: string[] = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
 
 	constructor(insightFacade: InsightFacade) {
 		this.parsedQuery = [];
@@ -28,6 +29,10 @@ export default class QueryEngine {
 	}
 
 	/**
+	 * Set up initial structure
+	 */
+
+	/**
 	 * Parse the WHERE block of the query
 	 */
 	public async handleWHERE(where: any): Promise<InsightResult[]> {
@@ -36,6 +41,17 @@ export default class QueryEngine {
 			return this.parsedQuery;
 		}
 
+		//override parsedQuery with new filtered result
+		this.parsedQuery = await this.parseTree(where);
+
+		await this.handleORDER(this.sortKey, this.columns);
+		return this.parsedQuery;
+	}
+
+	/**
+	 * Function for recursion
+	 */
+	private async parseTree(where: any): Promise<InsightResult[]> {
 		const promises: Promise<InsightResult[]>[] = [];
 
 		//recurse through logic comparators in WHERE to filter options
@@ -51,14 +67,8 @@ export default class QueryEngine {
 			}
 		}
 
-		//wait for all async functions to run
-		//override parsedQuery with new filtered result
 		const final: InsightResult[][] = await Promise.all(promises);
-		this.parsedQuery = final[0];
-
-		await this.handleORDER(this.sortKey, this.columns);
-
-		return this.parsedQuery;
+		return final[0];
 	}
 
 	/**
@@ -80,12 +90,11 @@ export default class QueryEngine {
 			throw new InsightError("Invalid filter key: " + Object.keys(neg)[0]);
 		}
 
-		const notResults: InsightResult[] = await this.handleWHERE(neg);
+		const notResults: InsightResult[] = await this.parseTree(neg);
 		let allResults: InsightResult[] = this.parsedQuery;
 
 		//filter out any results that belong to notResults
 		allResults = allResults.filter((res) => notResults.some((currRes) => !this.isEqual(res, currRes)));
-
 		return allResults;
 	}
 
@@ -101,7 +110,7 @@ export default class QueryEngine {
 		const promises: Promise<InsightResult[]>[] = [];
 
 		for (const c of lcomp) {
-			promises.push(this.handleWHERE(lcomp[c])); //recursive call
+			promises.push(this.parseTree(c)); //recursive call
 		}
 
 		const allResults: InsightResult[][] = await Promise.all(promises);
@@ -112,7 +121,6 @@ export default class QueryEngine {
 		} else if (cType === "OR") {
 			tempResult = await this.handleOR(allResults);
 		}
-
 		return tempResult;
 	}
 
@@ -168,16 +176,17 @@ export default class QueryEngine {
 		const checkKeys = Object.keys(currRes);
 
 		//check that keys are the same
-		if (!(givenKeys === checkKeys)) {
+		if (!(JSON.stringify(givenKeys) === JSON.stringify(checkKeys))) {
 			return false;
 		}
 
 		//check that values are the same
 		for (const k of givenKeys) {
-			if (givenKeys[k as keyof typeof givenKeys] !== checkKeys[k as keyof typeof checkKeys]) {
+			if (res[k] !== currRes[k]) {
 				return false;
 			}
 		}
+
 		return true;
 	}
 
@@ -225,25 +234,25 @@ export default class QueryEngine {
 	 * Private helper to determine if string is a match (wildcard handling)
 	 */
 	private isCompMatch(res: string, value: string): boolean {
-		const wc = value;
+		let wc = value;
 		// Case 1: exact match
 		if (!wc.includes("*")) {
-			return true;
+			return res === value;
 		}
 
 		// Case 2: wildcard at the start
 		if (wc.startsWith("*")) {
 			//Case 3: wildcard at the start and end
 			if (wc.endsWith("*")) {
-				wc.replace("*", "");
+				wc = wc.replace(/\*/g, "");
 				return res.includes(wc);
 			}
-			wc.replace("*", "");
+			wc = wc.replace(/\*/g, "");
 			return res.endsWith(wc);
 		}
 		//Case 4: wildcard at the end
 		if (wc.endsWith("*")) {
-			wc.replace("*", "");
+			wc = wc.replace(/\*/g, "");
 			return res.startsWith(wc);
 		}
 
@@ -398,12 +407,10 @@ export default class QueryEngine {
 				result[c] = (section as any)[keys[counter]];
 				counter += 1;
 			}
-
 			this.parsedQuery.push(result);
 		}
 		//TODO: you can probably look to optimize this
 		this.columns = columns;
-
 		return columns;
 	}
 
