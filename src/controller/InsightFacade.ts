@@ -13,6 +13,7 @@ import DatasetProcessor from "./DatasetProcessor";
 import QueryEngine from "./QueryEngine";
 
 import { Dataset } from "./Dataset";
+import { QueryValidator } from "./QueryValidator";
 
 /**
  * This is the main programmatic entry point for the project.
@@ -114,6 +115,13 @@ export default class InsightFacade implements IInsightFacade {
 			throw new InsightError("Invalid query string");
 		}
 		const jsonQuery: any = query;
+		const queryValidator = new QueryValidator(this);
+		try {
+			queryValidator.validateQuery(jsonQuery);
+		} catch (err) {
+			throw err;
+		}
+
 		//handleOPTIONS sets up results
 		this.queryEngine.handleOPTIONS(jsonQuery.OPTIONS);
 		//filters results based on user inputs
