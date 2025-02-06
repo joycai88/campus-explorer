@@ -1,0 +1,78 @@
+ {
+	"title": "complex wildcard",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"IS": {
+						"sections_instructor": "*z*"
+					}
+				},
+				{
+					"LT": {
+						"sections_pass": 4
+					}
+				},
+				{
+					"IS": {
+						"sections_dept": "c*"
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_id",
+				"sections_instructor",
+				"sections_pass"
+			],
+			"ORDER": "sections_dept"
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_dept": "ceen",
+			"sections_id": "596",
+			"sections_instructor": "mazzi, eric;wilkinson, david",
+			"sections_pass": 3
+		},
+		{
+			"sections_dept": "chbe",
+			"sections_id": "599",
+			"sections_instructor": "englezos, peter",
+			"sections_pass": 2
+		},
+		{
+			"sections_dept": "chbe",
+			"sections_id": "599",
+			"sections_instructor": "englezos, peter",
+			"sections_pass": 3
+		},
+		{
+			"sections_dept": "chbe",
+			"sections_id": "599",
+			"sections_instructor": "englezos, peter",
+			"sections_pass": 3
+		},
+		{
+			"sections_dept": "chbe",
+			"sections_id": "599",
+			"sections_instructor": "englezos, peter",
+			"sections_pass": 2
+		},
+		{
+			"sections_dept": "chbe",
+			"sections_id": "494",
+			"sections_instructor": "kwok, k ezra",
+			"sections_pass": 3
+		},
+		{
+			"sections_dept": "comm",
+			"sections_id": "293",
+			"sections_instructor": "rajwani, aziz",
+			"sections_pass": 3
+		}
+	]
+}

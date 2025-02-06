@@ -1,0 +1,45 @@
+{
+	"title": "AND logic comparison",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"IS": {
+						"easy_dept": "anat"
+					}
+				},
+				{
+					"IS": {
+						"easy_id": "515"
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"easy_id",
+				"easy_dept"
+			],
+			"ORDER": "easy_dept"
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"easy_id": "515",
+			"easy_dept": "anat"
+		},
+		{
+			"easy_id": "515",
+			"easy_dept": "anat"
+		},
+		{
+			"easy_id": "515",
+			"easy_dept": "anat"
+		},
+		{
+			"easy_id": "515",
+			"easy_dept": "anat"
+		}
+	]
+}

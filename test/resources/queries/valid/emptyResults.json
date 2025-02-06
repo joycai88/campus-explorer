@@ -1,0 +1,19 @@
+{
+	"title": "empty results",
+	"input": {
+		"WHERE": {
+			"GT": {
+				"sections_avg": 101
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_avg"
+			],
+			"ORDER": "sections_dept"
+		}
+	},
+	"errorExpected": false,
+	"expected": []
+}

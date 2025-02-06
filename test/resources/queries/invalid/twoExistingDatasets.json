@@ -1,0 +1,15 @@
+{
+	"title": "two existing datasets",
+	"input": {
+		"WHERE": {},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"easy_id"
+			],
+			"ORDER": "easy_dept"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

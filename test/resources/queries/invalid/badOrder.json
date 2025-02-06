@@ -1,0 +1,19 @@
+{
+	"title": "ORDER key not in COLUMNS",
+	"input": {
+		"WHERE": {
+			"IS": {
+				"sections_dept": "anat"
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_id",
+				"sections_dept"
+			],
+			"ORDER": "sections_year"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

@@ -1,0 +1,33 @@
+{
+	"title": "missing columns",
+	"input": {
+		"WHERE": {
+			"OR": [
+				{
+					"AND": [
+						{
+							"GT": {
+								"sections_avg": 94
+							}
+						},
+						{
+							"IS": {
+								"sections_dept": "cpsc"
+							}
+						}
+					]
+				},
+				{
+					"EQ": {
+						"sections_avg": 100
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"ORDER": "sections_avg"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

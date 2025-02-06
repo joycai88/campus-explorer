@@ -1,0 +1,20 @@
+{
+	"title": "No Title Specified",
+	"input": {
+		"WHERE": {
+			"IS": {
+				"test_dept": "cpsc"
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"test_uuid",
+				"test_id",
+				"test_dept"
+			],
+			"ORDER": "test_dept"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

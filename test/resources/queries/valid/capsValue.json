@@ -1,0 +1,19 @@
+{
+	"title": "caps value",
+	"input": {
+		"WHERE": {
+			"IS": {
+				"sections_dept": "SPPH"
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_id"
+			],
+			"ORDER": "sections_dept"
+		}
+	},
+	"errorExpected": false,
+	"expected": []
+}

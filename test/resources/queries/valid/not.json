@@ -1,0 +1,30 @@
+{
+	"title": "NOT logic comparison",
+	"input": {
+		"WHERE": {
+			"NOT": {
+				"IS": {
+					"easy_dept": "anat"
+				}
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"easy_id",
+				"easy_dept"
+			],
+			"ORDER": "easy_dept"
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"easy_id": "551",
+			"easy_dept": "aanb"
+		},
+		{
+			"easy_id": "551",
+			"easy_dept": "aanb"
+		}
+	]
+}
