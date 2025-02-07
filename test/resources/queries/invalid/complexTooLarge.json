@@ -1,0 +1,41 @@
+{
+	"title": "complex too large",
+	"input": {
+		"WHERE": {
+			"OR": [
+				{
+					"EQ": {
+						"sections_avg": 85
+					}
+				},
+				{
+					"LT": {
+						"sections_avg": 85
+					}
+				},
+				{
+					"GT": {
+						"sections_avg": 85
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_uuid",
+				"sections_id",
+				"sections_title",
+				"sections_instructor",
+				"sections_dept",
+				"sections_year",
+				"sections_avg",
+				"sections_pass",
+				"sections_fail",
+				"sections_audit"
+			],
+			"ORDER": "sections_avg"
+		}
+	},
+	"errorExpected": true,
+	"expected": "ResultTooLargeError"
+}

@@ -1,0 +1,94 @@
+{
+	"title": "MComp EQ",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"AND": [
+						{
+							"IS": {
+								"sections_instructor": ""
+							}
+						},
+						{
+							"IS": {
+								"sections_dept": "cpsc"
+							}
+						}
+					]
+				},
+				{
+					"EQ": {
+						"sections_avg": 85
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_uuid",
+				"sections_id",
+				"sections_title",
+				"sections_instructor",
+				"sections_dept",
+				"sections_year",
+				"sections_avg",
+				"sections_pass",
+				"sections_fail",
+				"sections_audit"
+			],
+			"ORDER": "sections_avg"
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_uuid": "83542",
+			"sections_id": "589",
+			"sections_title": "m.sc major essay",
+			"sections_instructor": "",
+			"sections_dept": "cpsc",
+			"sections_year": 1900,
+			"sections_avg": 85,
+			"sections_pass": 3,
+			"sections_fail": 0,
+			"sections_audit": 0
+		},
+		{
+			"sections_uuid": "62485",
+			"sections_id": "589",
+			"sections_title": "m.sc major essay",
+			"sections_instructor": "",
+			"sections_dept": "cpsc",
+			"sections_year": 2015,
+			"sections_avg": 85,
+			"sections_pass": 1,
+			"sections_fail": 0,
+			"sections_audit": 0
+		},
+		{
+			"sections_uuid": "49977",
+			"sections_id": "521",
+			"sections_title": "para algs & arch",
+			"sections_instructor": "",
+			"sections_dept": "cpsc",
+			"sections_year": 1900,
+			"sections_avg": 85,
+			"sections_pass": 7,
+			"sections_fail": 0,
+			"sections_audit": 0
+		},
+		{
+			"sections_uuid": "72395",
+			"sections_id": "411",
+			"sections_title": "compiler constrc",
+			"sections_instructor": "",
+			"sections_dept": "cpsc",
+			"sections_year": 1900,
+			"sections_avg": 85,
+			"sections_pass": 17,
+			"sections_fail": 0,
+			"sections_audit": 0
+		}
+	]
+}

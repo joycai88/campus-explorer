@@ -429,12 +429,14 @@ describe("InsightFacade", function () {
 		it("[valid/passComp.json] pass <= 5", checkQuery); //pass
 		it("[valid/complex.json] complex query", checkQuery);
 		it("[valid/repeatedCol.json] repeated COLUMN", checkQuery); //pass
-		it("[valid/allColumns.json] all columns", checkQuery); //TODO: order diff
+		it("[valid/allColumns.json] all columns", checkQuery); //pass
 		it("[valid/showOneColumn.json] show one column", checkQuery); //pass
 		it("[valid/emptyResults.json] empty results", checkQuery); //pass
 		it("[valid/capsValue.json] caps value", checkQuery); //pass
 		it("[valid/oneSection.json] one section", checkQuery); //pass
 		it("[valid/emptyWhere.json] empty where", checkQuery); //pass
+		it("[valid/noOrder.json] missing order but still valid", checkQuery);
+		it("[valid/oneColumn.json] one column", checkQuery);
 
 		it("[invalid/invalid.json] Query missing WHERE", checkQuery);
 		it("[invalid/tooLarge.json] Query >= 5000 results", checkQuery);
@@ -453,8 +455,79 @@ describe("InsightFacade", function () {
 		it("[invalid/twoExistingDatasets.json] two existing datasets", checkQuery);
 		it("[invalid/numberIS.json] number IS", checkQuery);
 		it("[invalid/noQuery.json] no query", checkQuery);
+		it("[invalid/complexTooLarge.json] complex too large", checkQuery);
 
 		it("[valid/complexWildcard.json] complex wildcard", checkQuery);
 		it("[valid/complexNot.json] complex not", checkQuery);
+
+		//unit tests for MCOMP
+		it("[valid/mCompEQ.json] MComp EQ", checkQuery);
+		it("[valid/mCompLT.json] MComp LT", checkQuery);
+		it("[valid/mCompGT.json] MComp GT", checkQuery);
+
+		//unit tests for SCOMP
+		it("[valid/andWithOneElement.json] and with one element", checkQuery);
+		it("[valid/orWithOneElement.json] or with one element", checkQuery);
+	});
+
+	describe("handleOrder", function () {
+		/**
+		 * Loads the TestQuery specified in the test name and asserts the behaviour of performQuery.
+		 *
+		 * Note: the 'this' parameter is automatically set by Mocha and contains information about the test.
+		 */
+		async function checkQuery(this: Mocha.Context): Promise<void> {
+			if (!this.test) {
+				throw new Error(
+					"Invalid call to checkQuery." +
+						"Usage: 'checkQuery' must be passed as the second parameter of Mocha's it(..) function." +
+						"Do not invoke the function directly."
+				);
+			}
+			// Destructuring assignment to reduce property accesses
+			const { input, expected, errorExpected } = await loadTestQuery(this.test.title);
+			let result: InsightResult[] = []; // dummy value before being reassigned
+			try {
+				result = await facade.performQuery(input);
+			} catch (err) {
+				if (!errorExpected) {
+					expect.fail(`performQuery threw unexpected error: ${err}`);
+				}
+				if (expected === "ResultTooLargeError") {
+					expect(err).to.be.instanceOf(ResultTooLargeError);
+				} else {
+					expect(err).to.be.instanceOf(InsightError);
+				}
+				return;
+			}
+			if (errorExpected) {
+				expect.fail(`performQuery resolved when it should have rejected with ${expected}`);
+			}
+
+			expect(result).deep.equal(expected);
+		}
+
+		before(async function () {
+			facade = new InsightFacade();
+
+			// Add the datasets to InsightFacade once.
+			// Will *fail* if there is a problem reading ANY dataset.
+			const loadDatasetPromises: Promise<string[]>[] = [
+				facade.addDataset("sections", sections, InsightDatasetKind.Sections),
+				facade.addDataset("easy", easy, InsightDatasetKind.Sections),
+			];
+
+			try {
+				await Promise.all(loadDatasetPromises);
+			} catch (err) {
+				throw new Error(`In PerformQuery Before hook, dataset(s) failed to be added. \n${err}`);
+			}
+		});
+
+		after(async function () {
+			await clearDisk();
+		});
+
+		it("[valid/uuidOrder.json] uuid order", checkQuery);
 	});
 });
