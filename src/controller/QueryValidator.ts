@@ -8,7 +8,7 @@ export class QueryValidator {
 	private logic: string[] = ["AND", "OR"];
 
 	private allDatasets: string[];
-	private datasetID: string;
+	private datasetID: string | null;
 	private filterCols: string[];
 
 	private insightFacade: InsightFacade;
@@ -16,7 +16,7 @@ export class QueryValidator {
 	constructor(facade: InsightFacade) {
 		this.insightFacade = facade;
 		this.allDatasets = [];
-		this.datasetID = "";
+		this.datasetID = null;
 		this.filterCols = [];
 	}
 
@@ -42,7 +42,7 @@ export class QueryValidator {
 
 		//reset datasetID
 		this.allDatasets = [];
-		this.datasetID = "";
+		this.datasetID = null;
 		this.filterCols = [];
 
 		return;
@@ -54,12 +54,6 @@ export class QueryValidator {
 			throw new InsightError("Invalid query string");
 		}
 
-		this.validateTree(where);
-
-		return;
-	}
-
-	private validateTree(where: any): void {
 		const keys: string[] = Object.keys(where);
 
 		//check that there is at most one key in where
@@ -85,6 +79,8 @@ export class QueryValidator {
 		} else {
 			throw new InsightError(`${filter} is not a valid filter`);
 		}
+
+		return;
 	}
 
 	private validateSComp(scomp: any): void {
@@ -111,7 +107,7 @@ export class QueryValidator {
 		if (!this.allDatasets.includes(idstring)) {
 			throw new InsightError("Invalid dataset queried in IS");
 		}
-		if (this.datasetID === "") {
+		if (this.datasetID === null) {
 			this.datasetID = idstring;
 		} else {
 			if (idstring !== this.datasetID) {
@@ -153,7 +149,7 @@ export class QueryValidator {
 		if (!this.allDatasets.includes(idstring)) {
 			throw new InsightError(`Invalid dataset queried in ${filter}`);
 		}
-		if (this.datasetID === "") {
+		if (this.datasetID === null) {
 			this.datasetID = idstring;
 		} else {
 			if (idstring !== this.datasetID) {
@@ -180,7 +176,7 @@ export class QueryValidator {
 		//check that each element in lcomp is also valid
 		for (const f of lcomp) {
 			try {
-				this.validateTree(f);
+				this.validateWHERE(f);
 			} catch (err) {
 				throw err;
 			}
@@ -200,7 +196,7 @@ export class QueryValidator {
 
 		//verify that filter is valid
 		try {
-			this.validateTree(neg);
+			this.validateWHERE(neg);
 		} catch (err) {
 			throw err;
 		}
@@ -253,7 +249,7 @@ export class QueryValidator {
 			if (!this.allDatasets.includes(cid)) {
 				throw new InsightError("COLUMN includes an invalid dataset");
 			}
-			if (this.datasetID === "") {
+			if (this.datasetID === null) {
 				this.datasetID = cid;
 			} else {
 				if (this.datasetID !== cid) {

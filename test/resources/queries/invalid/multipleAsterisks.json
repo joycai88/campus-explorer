@@ -1,0 +1,20 @@
+{
+	"title": "multiple asterisks",
+	"input": {
+		"WHERE": {
+			"IS": {
+				"sections_dept": "**tes**"
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_uuid",
+				"sections_dept",
+				"sections_year"
+			],
+			"ORDER": "sections_dept"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}
