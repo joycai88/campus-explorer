@@ -456,6 +456,9 @@ describe("InsightFacade", function () {
 		it("[invalid/numberIS.json] number IS", checkQuery);
 		it("[invalid/noQuery.json] no query", checkQuery);
 		it("[invalid/complexTooLarge.json] complex too large", checkQuery);
+		it("[invalid/multipleAsterisks.json] multiple asterisks", checkQuery);
+		it("[invalid/multipleAsterisksEnd.json] multiple asterisks end", checkQuery);
+		it("[invalid/multipleAsterisksStart.json] multiple asterisks start", checkQuery);
 
 		it("[valid/complexWildcard.json] complex wildcard", checkQuery);
 		it("[valid/complexNot.json] complex not", checkQuery);
@@ -465,9 +468,14 @@ describe("InsightFacade", function () {
 		it("[valid/mCompLT.json] MComp LT", checkQuery);
 		it("[valid/mCompGT.json] MComp GT", checkQuery);
 
-		//unit tests for SCOMP
+		//unit tests for LOGIC
 		it("[valid/andWithOneElement.json] and with one element", checkQuery);
 		it("[valid/orWithOneElement.json] or with one element", checkQuery);
+
+		//unit tests for SCOMP
+
+		//unit tests for NEGATION
+		it("[valid/nestedNots.json] nested nots", checkQuery);
 	});
 
 	describe("handleOrder", function () {

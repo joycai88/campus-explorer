@@ -1,0 +1,33 @@
+{
+	"title": "nested nots",
+	"input": {
+		"WHERE": {
+			"NOT": {
+				"NOT": {
+					"NOT": {
+						"LT": {
+							"sections_avg": 99
+						}
+					}
+				}
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_avg"
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_avg": 99.19
+		},
+		{
+			"sections_avg": 99.78
+		},
+		{
+			"sections_avg": 99.78
+		}
+	]
+}

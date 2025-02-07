@@ -150,28 +150,6 @@ export default class QueryEngine {
 		return Array.from(orResultSet).map((res) => JSON.parse(res));
 	}
 
-	// /**
-	//  * "===" operator for InsightResult
-	//  */
-	// private isEqual(res: InsightResult, currRes: InsightResult): boolean {
-	// 	const givenKeys = Object.keys(res);
-	// 	const checkKeys = Object.keys(currRes);
-	//
-	// 	//check that keys are the same
-	// 	if (!(JSON.stringify(givenKeys) === JSON.stringify(checkKeys))) {
-	// 		return false;
-	// 	}
-	//
-	// 	//check that values are the same
-	// 	for (const k of givenKeys) {
-	// 		if (res[k] !== currRes[k]) {
-	// 			return false;
-	// 		}
-	// 	}
-	//
-	// 	return true;
-	// }
-
 	/**
 	 * Helper for handleWHERE to parse SCOMPARISON
 	 *
@@ -217,16 +195,24 @@ export default class QueryEngine {
 		if (wc.startsWith("*")) {
 			//Case 3: wildcard at the start and end
 			if (wc.endsWith("*")) {
-				wc = wc.replace(/\*/g, "");
-				return res.includes(wc);
+				wc = wc.slice(1, -1);
+				if (!wc.includes("*")) {
+					return res.includes(wc);
+				} else {
+					throw new InsightError("Asterisks (*) can only be the first or last characters of input strings");
+				}
 			}
-			wc = wc.replace(/\*/g, "");
-			return res.endsWith(wc);
+			wc = wc.slice(1);
+			if (!wc.includes("*")) {
+				return res.endsWith(wc);
+			}
 		}
 		//Case 4: wildcard at the end
 		if (wc.endsWith("*")) {
-			wc = wc.replace(/\*/g, "");
-			return res.startsWith(wc);
+			wc = wc.slice(0, -1);
+			if (!wc.includes("*")) {
+				return res.startsWith(wc);
+			}
 		}
 
 		//If function gets here, the value we're comparing to is invalid
