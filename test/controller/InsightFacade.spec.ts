@@ -437,6 +437,8 @@ describe("InsightFacade", function () {
 		it("[valid/emptyWhere.json] empty where", checkQuery); //pass
 		it("[valid/noOrder.json] missing order but still valid", checkQuery);
 		it("[valid/oneColumn.json] one column", checkQuery);
+		it("[valid/decimalDataset.json] decimal dataset", checkQuery);
+		it("[valid/decimalDatasetGt.json] decimal dataset gt", checkQuery);
 
 		it("[invalid/invalid.json] Query missing WHERE", checkQuery);
 		it("[invalid/tooLarge.json] Query >= 5000 results", checkQuery);
@@ -459,9 +461,15 @@ describe("InsightFacade", function () {
 		it("[invalid/multipleAsterisks.json] multiple asterisks", checkQuery);
 		it("[invalid/multipleAsterisksEnd.json] multiple asterisks end", checkQuery);
 		it("[invalid/multipleAsterisksStart.json] multiple asterisks start", checkQuery);
+		it("[invalid/unaddedDataset.json] unadded dataset", checkQuery);
+		it("[invalid/justTripleWildcard.json] just triple wildcard", checkQuery);
+		it("[invalid/nullInput.json] null input", checkQuery);
+		it("[invalid/emptyStringDataset.json] empty string dataset", checkQuery);
 
 		it("[valid/complexWildcard.json] complex wildcard", checkQuery);
 		it("[valid/complexNot.json] complex not", checkQuery);
+		it("[valid/justWildcard.json] just wildcard", checkQuery);
+		it("[valid/justDoubleWildcard.json] just double wildcard", checkQuery);
 
 		//unit tests for MCOMP
 		it("[valid/mCompEQ.json] MComp EQ", checkQuery);

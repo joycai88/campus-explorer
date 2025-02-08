@@ -1,0 +1,26 @@
+{
+	"title": "decimal dataset",
+	"input": {
+		"WHERE": {
+			"NOT": {
+				"LT": {
+					"sections_avg": 99.78
+				}
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_avg"
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_avg": 99.78
+		},
+		{
+			"sections_avg": 99.78
+		}
+	]
+}

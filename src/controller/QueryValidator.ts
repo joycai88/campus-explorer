@@ -104,8 +104,11 @@ export class QueryValidator {
 		const sfield = skey.split("_")[1];
 
 		//check that idstring is a valid dataset id
+		if (!/^[^_]+$/.test(idstring)) {
+			throw new InsightError("Invalid ID for dataset");
+		}
 		if (!this.allDatasets.includes(idstring)) {
-			throw new InsightError("Invalid dataset queried in IS");
+			throw new InsightError("Dataset does not exist");
 		}
 		if (this.datasetID === null) {
 			this.datasetID = idstring;
@@ -146,6 +149,9 @@ export class QueryValidator {
 		const mfield = mkey.split("_")[1];
 
 		//check that idstring is a valid dataset id
+		if (!/^[^_]+$/.test(idstring)) {
+			throw new InsightError("Invalid ID for dataset");
+		}
 		if (!this.allDatasets.includes(idstring)) {
 			throw new InsightError(`Invalid dataset queried in ${filter}`);
 		}
@@ -246,6 +252,9 @@ export class QueryValidator {
 			const cfield = c.split("_")[1];
 
 			//verify that cid is valid
+			if (!/^[^_]+$/.test(cid)) {
+				throw new InsightError("Invalid ID for dataset");
+			}
 			if (!this.allDatasets.includes(cid)) {
 				throw new InsightError("COLUMN includes an invalid dataset");
 			}

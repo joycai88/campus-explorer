@@ -1,4 +1,4 @@
-import { InsightError, InsightResult } from "./IInsightFacade";
+import { InsightError, InsightResult, ResultTooLargeError } from "./IInsightFacade";
 import InsightFacade from "./InsightFacade";
 import Section from "./Section";
 
@@ -345,6 +345,14 @@ export default class QueryEngine {
 		this.parsedQuery = tempResult;
 		if (this.doOrder) {
 			this.handleORDER(this.sortKey);
+		}
+
+		//check that size of results no bigger than 5000
+		const maxSize = 5000;
+		if (this.parsedQuery.length > maxSize) {
+			throw new ResultTooLargeError(
+				"The result is too big. Only queries with a maximum " + "of 5000 results are supported."
+			);
 		}
 
 		return this.parsedQuery;

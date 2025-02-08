@@ -1,5 +1,5 @@
 {
-	"title": "No Title Specified",
+	"title": "EQ with string comparison",
 	"input": {
 		"WHERE": {
 			"OR": [

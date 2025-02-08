@@ -7,7 +7,6 @@ import {
 	InsightError,
 	InsightResult,
 	NotFoundError,
-	ResultTooLargeError,
 } from "./IInsightFacade";
 import DatasetProcessor from "./DatasetProcessor";
 import QueryEngine from "./QueryEngine";
@@ -132,14 +131,6 @@ export default class InsightFacade implements IInsightFacade {
 			throw err;
 		} finally {
 			this.queryEngine.cleanUp();
-		}
-
-		//check that size of results no bigger than 5000
-		const maxSize = 5000;
-		if (result.length > maxSize) {
-			throw new ResultTooLargeError(
-				"The result is too big. Only queries with a maximum " + "of 5000 results are supported."
-			);
 		}
 		return result;
 	}
