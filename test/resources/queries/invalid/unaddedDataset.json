@@ -1,0 +1,19 @@
+{
+	"title": "unadded dataset",
+	"input": {
+		"WHERE": {
+			"NOT": {
+				"LT": {
+					"section_avg": 99
+				}
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"section_avg"
+			]
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

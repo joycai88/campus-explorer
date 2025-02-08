@@ -1,0 +1,24 @@
+{
+	"title": "decimal dataset gt",
+	"input": {
+		"WHERE": {
+			"GT": {
+				"sections_avg": 99.778
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_avg"
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_avg": 99.78
+		},
+		{
+			"sections_avg": 99.78
+		}
+	]
+}
