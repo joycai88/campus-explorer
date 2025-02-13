@@ -92,13 +92,17 @@ export default class DatasetProcessor {
 	// Helper function to validate id, kind, content
 	private async validateDataset(id: string, content: string, kind: InsightDatasetKind): Promise<void> {
 		// Check ID validity
-		if (!id || id.trim() === "" || id.includes("_")) {
+		if (id === null || !id || id.trim() === "" || id.includes("_")) {
 			throw new InsightError("Invalid dataset ID");
 		}
 
 		// Check for duplicate ID
 		if (kind !== InsightDatasetKind.Sections) {
 			throw new InsightError("Invalid dataset kind");
+		}
+
+		if (content === null) {
+			throw new InsightError("Null content");
 		}
 
 		// Validate base64 content
@@ -162,7 +166,7 @@ export default class DatasetProcessor {
 		}
 
 		// Convert Year to 1900 if Section is overall
-		if (item.Section === "overall") {
+		if (item.Section.toLowerCase() === "overall") {
 			item.Year = 1900;
 		}
 

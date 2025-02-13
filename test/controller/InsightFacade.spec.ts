@@ -125,6 +125,26 @@ describe("InsightFacade", function () {
 			}
 		});
 
+		// it("should reject for an invalid type", async function () {
+		// 	try {
+		// 		const invalidZip = await getContentFromArchives("invalid_type.zip");
+		// 		await facade.addDataset("test", invalidZip, InsightDatasetKind.Sections);
+		// 		expect.fail("Should have thrown error");
+		// 	} catch (err) {
+		// 		expect(err).to.be.an.instanceOf(InsightError);
+		// 	}
+		// });
+
+		it("should reject for file not named courses", async function () {
+			try {
+				const invalidZip = await getContentFromArchives("wrong_name.zip");
+				await facade.addDataset("test", invalidZip, InsightDatasetKind.Sections);
+				expect.fail("Should have thrown error");
+			} catch (err) {
+				expect(err).to.be.an.instanceOf(InsightError);
+			}
+		});
+
 		it("should reject when given invalid base64 string", async function () {
 			const invalidBase64 = "invalid_string";
 			try {

@@ -1,3 +1,4 @@
+import { InsightError } from "./IInsightFacade";
 export default class Section {
 	private readonly uuid: string;
 	private readonly id: string;
@@ -22,16 +23,29 @@ export default class Section {
 		fail: number,
 		audit: number
 	) {
-		this.uuid = uuid.toString();
+		const uuidString = String(uuid);
+		const yearNum = Number(year);
+		const avgNum = Number(avg);
+		const passNum = Number(pass);
+		const failNum = Number(fail);
+		const auditNum = Number(audit);
+
+		if (isNaN(yearNum)) throw new InsightError("year must be a valid number");
+		if (isNaN(avgNum)) throw new InsightError("avg must be a valid number");
+		if (isNaN(passNum)) throw new InsightError("pass must be a valid number");
+		if (isNaN(failNum)) throw new InsightError("fail must be a valid number");
+		if (isNaN(auditNum)) throw new InsightError("audit must be a valid number");
+
+		this.uuid = uuidString;
 		this.id = id;
 		this.title = title;
 		this.instructor = instructor;
 		this.dept = dept;
-		this.year = Number(year);
-		this.avg = avg;
-		this.pass = pass;
-		this.fail = fail;
-		this.audit = audit;
+		this.year = yearNum;
+		this.avg = avgNum;
+		this.pass = passNum;
+		this.fail = failNum;
+		this.audit = auditNum;
 	}
 
 	public toJSON(): object {
@@ -50,12 +64,16 @@ export default class Section {
 	}
 
 	public static fromJSON(json: any): Section {
+		if (typeof json !== "object" || json === null) {
+			throw new InsightError("Invalid JSON input");
+		}
+
 		return new Section(
 			json.uuid,
 			json.id,
 			json.title,
 			json.instructor,
-			json.subject,
+			json.dept,
 			json.year,
 			json.avg,
 			json.pass,
