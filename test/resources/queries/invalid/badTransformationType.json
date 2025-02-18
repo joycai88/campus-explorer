@@ -1,0 +1,14 @@
+{
+	"title": "bad transformation type",
+	"input": {
+		"WHERE": {},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_title"
+			]
+		},
+		"TRANSFORMATIONS": 0
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

@@ -399,6 +399,7 @@ describe("InsightFacade", function () {
 			try {
 				result = await facade.performQuery(input);
 			} catch (err) {
+				//console.log(err);
 				if (!errorExpected) {
 					expect.fail(`performQuery threw unexpected error: ${err}`);
 				}
@@ -500,10 +501,24 @@ describe("InsightFacade", function () {
 		it("[valid/andWithOneElement.json] and with one element", checkQuery);
 		it("[valid/orWithOneElement.json] or with one element", checkQuery);
 
-		//unit tests for SCOMP
-
 		//unit tests for NEGATION
 		it("[valid/nestedNots.json] nested nots", checkQuery);
+
+		//TESTS FOR C2 START HERE ========================================
+		//Query validation tests
+		it("[invalid/orderMissingDir.json] order missing dir", checkQuery);
+		it("[invalid/orderMissingKeys.json] order missing keys", checkQuery);
+		it("[invalid/invalidOrderDir.json] invalid order dir", checkQuery);
+		it("[invalid/emptyOrderKeys.json] empty order keys", checkQuery);
+		it("[invalid/orderBadKey.json], order bad key", checkQuery);
+		it("[invalid/invalidTransformationColumns.json] invalid transformation columns", checkQuery);
+		it("[invalid/duplicateApplyKey.json] duplicate apply key", checkQuery);
+		it("[invalid/badTransformationOp.json] bad transformation op", checkQuery);
+		it("[invalid/badApplyKey.json] bad apply key", checkQuery);
+		it("[invalid/nonNumericAvg.json] non numeric avg", checkQuery);
+		it("[invalid/emptyGroup.json] empty group", checkQuery);
+		it("[invalid/missingApply.json] missing apply", checkQuery);
+		it("[invalid/badTransformationType.json] bad transformation type", checkQuery);
 	});
 
 	describe("handleOrder", function () {
