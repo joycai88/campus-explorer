@@ -13,6 +13,7 @@ import QueryEngine from "./QueryEngine";
 
 import { Dataset } from "./Dataset";
 import { QueryValidator } from "./QueryValidator";
+import QueryTransformer from "./QueryTransformer";
 
 /**
  * This is the main programmatic entry point for the project.
@@ -26,6 +27,7 @@ export default class InsightFacade implements IInsightFacade {
 	public dataDir;
 
 	private queryEngine: QueryEngine = new QueryEngine(this);
+	private queryTransformer: QueryTransformer = new QueryTransformer();
 
 	constructor(dataDir: string = "./data") {
 		this.datasetProcessor = new DatasetProcessor(dataDir);
@@ -120,12 +122,17 @@ export default class InsightFacade implements IInsightFacade {
 			throw err;
 		}
 
+		//TODO: you'll have to change the way things are done because options will be different too
 		//handleOPTIONS sets up results
 		this.queryEngine.handleOPTIONS(jsonQuery.OPTIONS);
 		//filters results based on user inputs
 		let result: InsightResult[] = [];
 		try {
 			result = this.queryEngine.handleWHERE(jsonQuery.WHERE);
+			if (jsonQuery.TRANSFORMAIONS) {
+				// TODO: whatever query transformer should do here
+				this.queryTransformer.handleTRANSFORM(result, jsonQuery.TRANSFORMAIONS);
+			}
 		} catch (err) {
 			throw err;
 		} finally {

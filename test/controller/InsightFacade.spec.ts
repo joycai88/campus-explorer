@@ -519,6 +519,9 @@ describe("InsightFacade", function () {
 		it("[invalid/emptyGroup.json] empty group", checkQuery);
 		it("[invalid/missingApply.json] missing apply", checkQuery);
 		it("[invalid/badTransformationType.json] bad transformation type", checkQuery);
+
+		//Group + Apply tests
+		it("[valid/groupApplySpecExample.json] group apply spec example", checkQuery);
 	});
 
 	describe("handleOrder", function () {
