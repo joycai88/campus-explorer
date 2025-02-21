@@ -116,22 +116,22 @@ export default class InsightFacade implements IInsightFacade {
 		}
 		const jsonQuery: any = query;
 		const queryValidator = new QueryValidator(this);
+		let datasetID = null;
 		try {
-			queryValidator.validateQuery(jsonQuery);
+			datasetID = queryValidator.validateQuery(jsonQuery);
 		} catch (err) {
 			throw err;
 		}
 
-		//TODO: you'll have to change the way things are done because options will be different too
 		//handleOPTIONS sets up results
-		this.queryEngine.handleOPTIONS(jsonQuery.OPTIONS);
+		this.queryEngine.handleOPTIONS(jsonQuery.OPTIONS, datasetID);
 		//filters results based on user inputs
 		let result: InsightResult[] = [];
 		try {
-			result = this.queryEngine.handleWHERE(jsonQuery.WHERE);
-			if (jsonQuery.TRANSFORMAIONS) {
-				// TODO: whatever query transformer should do here
-				this.queryTransformer.handleTRANSFORM(result, jsonQuery.TRANSFORMAIONS);
+			const hasTransform: boolean = !!jsonQuery.TRANSFORMATIONS;
+			result = this.queryEngine.handleWHERE(jsonQuery.WHERE, hasTransform);
+			if (hasTransform) {
+				result = this.queryTransformer.handleTRANSFORM(result, jsonQuery);
 			}
 		} catch (err) {
 			throw err;

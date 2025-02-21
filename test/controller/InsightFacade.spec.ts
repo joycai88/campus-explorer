@@ -522,6 +522,8 @@ describe("InsightFacade", function () {
 
 		//Group + Apply tests
 		it("[valid/groupApplySpecExample.json] group apply spec example", checkQuery);
+		it("[valid/applyTokenFirst.json] apply token first", checkQuery);
+		it("[valid/twoApplyTokens.json] two apply tokens", checkQuery);
 	});
 
 	describe("handleOrder", function () {
@@ -583,5 +585,8 @@ describe("InsightFacade", function () {
 		});
 
 		it("[valid/uuidOrder.json] uuid order", checkQuery);
+		it("[valid/orderDirectionDown.json] order direction down", checkQuery);
+		it("[valid/orderDownMultipleKeys.json] order down multiple key", checkQuery);
+		it("[valid/orderUpMultipleKeys.json] order up multiple key", checkQuery);
 	});
 });

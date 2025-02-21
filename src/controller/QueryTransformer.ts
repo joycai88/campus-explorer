@@ -1,4 +1,4 @@
-import { InsightResult } from "./IInsightFacade";
+import { InsightResult, ResultTooLargeError } from "./IInsightFacade";
 import Decimal from "decimal.js";
 
 export default class QueryTransformer {
@@ -13,12 +13,22 @@ export default class QueryTransformer {
 	 * @param query is the original query string
 	 * Handles TRANSFORMATIONS section of the query (GROUP + APPLY)
 	 */
-	public handleTRANSFORM(result: InsightResult[], query: any): void {
+	public handleTRANSFORM(result: InsightResult[], query: any): InsightResult[] {
 		this.columns = query.OPTIONS.COLUMNS;
+		this.finalResult = [];
 		// handle groupings
 		const groups = this.handleGROUP(result, query.TRANSFORMATIONS.GROUP);
 		// handle apply
 		this.handleAPPLY(groups, query.TRANSFORMATIONS.APPLY);
+
+		//check that size of results no bigger than 5000
+		const maxSize = 5000;
+		if (this.finalResult.length > maxSize) {
+			throw new ResultTooLargeError(
+				"The result is too big. Only queries with a maximum " + "of 5000 results are supported."
+			);
+		}
+		return this.finalResult;
 	}
 
 	/**
@@ -177,8 +187,6 @@ export default class QueryTransformer {
 			for (const g of group) {
 				identifier += res[g] + " ";
 				//create possible new result grouping
-				//TODO: for testing purposes, delete later
-				tempResult[g] = res[g];
 				if (this.columns.includes(g)) {
 					tempResult[g] = res[g];
 				}

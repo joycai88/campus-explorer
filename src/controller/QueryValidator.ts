@@ -39,7 +39,7 @@ export class QueryValidator {
 		this.groupKeys = [];
 	}
 
-	public validateQuery(query: any): void {
+	public validateQuery(query: any): string | null {
 		//get all valid dataset names
 		this.allDatasets = Array.from(this.insightFacade.dataMap.keys());
 
@@ -69,6 +69,8 @@ export class QueryValidator {
 			throw err;
 		}
 
+		const datasetID = this.datasetID;
+
 		//reset datasetID
 		this.allDatasets = [];
 		this.datasetID = null;
@@ -76,7 +78,7 @@ export class QueryValidator {
 		this.applyKeys = [];
 		this.groupKeys = [];
 
-		return;
+		return datasetID;
 	}
 
 	private validateWHERE(where: any): void {
@@ -241,19 +243,22 @@ export class QueryValidator {
 				if (typeof c !== "string") {
 					throw new InsightError("Invalid type of COLUMN key");
 				}
-				//verify that c has a valid section
-				if (c.split("_").length !== 2) {
-					throw new InsightError("Invalid key in COLUMN");
-				}
-				const cid = c.split("_")[0];
-				const cfield = c.split("_")[1];
+				//if column is an APPLY key, skip the following validation
+				if (!this.applyKeys.includes(c)) {
+					//verify that c has a valid section
+					if (c.split("_").length !== 2) {
+						throw new InsightError("Invalid key in COLUMN");
+					}
+					const cid = c.split("_")[0];
+					const cfield = c.split("_")[1];
 
-				//verify that cid is valid
-				this.validateDatasetID(cid);
+					//verify that cid is valid
+					this.validateDatasetID(cid);
 
-				//verify cfield
-				if (!this.mfield.includes(cfield) && !this.sfield.includes(cfield)) {
-					throw new InsightError("COLUMN includes an invalid key");
+					//verify cfield
+					if (!this.mfield.includes(cfield) && !this.sfield.includes(cfield)) {
+						throw new InsightError("COLUMN includes an invalid key");
+					}
 				}
 
 				this.filterCols.push(c);

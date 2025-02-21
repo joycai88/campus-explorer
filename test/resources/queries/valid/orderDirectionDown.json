@@ -1,0 +1,101 @@
+{
+	"title": "order direction down",
+	"input": {
+		"WHERE": {
+			"IS": {
+				"sections_instructor": "kiczales, gregor"
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_instructor",
+				"sections_uuid"
+			],
+			"ORDER": {
+				"dir": "DOWN",
+				"keys": [
+					"sections_uuid"
+				]
+			}
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_dept": "cpsc",
+			"sections_instructor": "kiczales, gregor",
+			"sections_uuid": "83389"
+		},
+		{
+			"sections_dept": "cpsc",
+			"sections_instructor": "kiczales, gregor",
+			"sections_uuid": "72322"
+		},
+		{
+			"sections_dept": "cpsc",
+			"sections_instructor": "kiczales, gregor",
+			"sections_uuid": "72319"
+		},
+		{
+			"sections_dept": "cpsc",
+			"sections_instructor": "kiczales, gregor",
+			"sections_uuid": "63245"
+		},
+		{
+			"sections_dept": "cpsc",
+			"sections_instructor": "kiczales, gregor",
+			"sections_uuid": "62346"
+		},
+		{
+			"sections_dept": "cpsc",
+			"sections_instructor": "kiczales, gregor",
+			"sections_uuid": "62342"
+		},
+		{
+			"sections_dept": "cpsc",
+			"sections_instructor": "kiczales, gregor",
+			"sections_uuid": "61084"
+		},
+		{
+			"sections_dept": "cpsc",
+			"sections_instructor": "kiczales, gregor",
+			"sections_uuid": "61083"
+		},
+		{
+			"sections_dept": "cpsc",
+			"sections_instructor": "kiczales, gregor",
+			"sections_uuid": "49850"
+		},
+		{
+			"sections_dept": "cpsc",
+			"sections_instructor": "kiczales, gregor",
+			"sections_uuid": "46654"
+		},
+		{
+			"sections_dept": "cpsc",
+			"sections_instructor": "kiczales, gregor",
+			"sections_uuid": "46653"
+		},
+		{
+			"sections_dept": "cpsc",
+			"sections_instructor": "kiczales, gregor",
+			"sections_uuid": "43188"
+		},
+		{
+			"sections_dept": "cpsc",
+			"sections_instructor": "kiczales, gregor",
+			"sections_uuid": "1254"
+		},
+		{
+			"sections_dept": "cpsc",
+			"sections_instructor": "kiczales, gregor",
+			"sections_uuid": "1249"
+		},
+		{
+			"sections_dept": "cpsc",
+			"sections_instructor": "kiczales, gregor",
+			"sections_uuid": "1248"
+		}
+	]
+}
