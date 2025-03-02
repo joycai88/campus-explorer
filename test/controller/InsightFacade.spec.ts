@@ -27,12 +27,16 @@ describe("InsightFacade", function () {
 	let sections: string;
 	let testSections: string;
 	let easy: string;
+	let rooms: string;
 
 	before(async function () {
 		// This block runs once and loads the datasets.
 		sections = await getContentFromArchives("pair.zip");
 		testSections = await getContentFromArchives("test.zip");
 		easy = await getContentFromArchives("simplest.zip");
+
+		// Rooms datasets
+		rooms = await getContentFromArchives("campus.zip");
 
 		// Just in case there is anything hanging around from a previous run of the test suite
 		await clearDisk();
@@ -125,16 +129,6 @@ describe("InsightFacade", function () {
 			}
 		});
 
-		// it("should reject for an invalid type", async function () {
-		// 	try {
-		// 		const invalidZip = await getContentFromArchives("invalid_type.zip");
-		// 		await facade.addDataset("test", invalidZip, InsightDatasetKind.Sections);
-		// 		expect.fail("Should have thrown error");
-		// 	} catch (err) {
-		// 		expect(err).to.be.an.instanceOf(InsightError);
-		// 	}
-		// });
-
 		it("should reject for file not named courses", async function () {
 			try {
 				const invalidZip = await getContentFromArchives("wrong_name.zip");
@@ -222,6 +216,37 @@ describe("InsightFacade", function () {
 				expect.fail("Should have thrown an error for empty courses.");
 			} catch (err) {
 				expect(err).to.be.an.instanceOf(InsightError);
+			}
+		});
+
+		// Rooms test:
+
+		it("should reject when index.htm does not exist", async function () {
+			try {
+				await facade.addDataset("1", rooms, InsightDatasetKind.Rooms);
+				expect.fail("Should have thrown an error.");
+			} catch (err) {
+				expect(err).to.be.an.instanceOf(InsightError);
+			}
+		});
+
+		it("should reject when passing in sections for rooms kind", async function () {
+			try {
+				await facade.addDataset("1", sections, InsightDatasetKind.Rooms);
+				expect.fail("Should have thrown an error.");
+			} catch (err) {
+				expect(err).to.be.an.instanceOf(InsightError);
+			}
+		});
+
+		it("should pass when passing in given campus.zip", async function () {
+			try {
+
+				const result = await facade.addDataset("1", rooms, InsightDatasetKind.Rooms);
+				expect(result).to.be.an("array");
+				expect(result).to.include("1");
+			} catch (err) {
+				expect.fail(`Should not have thrown, but threw ${err}`);
 			}
 		});
 	});
@@ -349,6 +374,8 @@ describe("InsightFacade", function () {
 				expect.fail(`Should not have thrown ${err}`);
 			}
 		});
+
+
 	});
 
 	describe("Cache", function () {
@@ -377,6 +404,9 @@ describe("InsightFacade", function () {
 
 			expect(result).to.be.a("string");
 		});
+
+
+
 	});
 
 	describe("PerformQuery", function () {

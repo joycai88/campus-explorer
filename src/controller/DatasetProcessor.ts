@@ -1,15 +1,20 @@
 import path from "path";
-import { InsightDatasetKind, InsightError } from "./IInsightFacade";
-import Section from "./Section";
+import {InsightDatasetKind, InsightError} from "./IInsightFacade";
 import JSZip from "jszip";
-import { Dataset } from "./Dataset";
+import {Dataset} from "./Dataset";
 import fs from "fs-extra";
+import HTMLProcessor from "./HTMLProcessor";
+import JSONProcessor from "./JSONProcessor";
 
 export default class DatasetProcessor {
 	private dataDir: string;
+	private htmlProcessor: HTMLProcessor;
+	private jsonProcessor: JSONProcessor;
 
 	constructor(dataDir: string) {
 		this.dataDir = dataDir;
+		this.htmlProcessor = new HTMLProcessor();
+		this.jsonProcessor = new JSONProcessor();
 	}
 
 	public async loadFromCache(id: string): Promise<Dataset | null> {
@@ -48,57 +53,82 @@ export default class DatasetProcessor {
 		}
 	}
 
-	/**
-	 * Processes the dataset by validating, extracting, and converting its content into Section objects.
-	 * CITATION: Used AI tool: ChatGPT for help on parseSections method
-	 */
 
 	public async processDataset(id: string, content: string, kind: InsightDatasetKind): Promise<Dataset> {
-		// Validate the dataset input
+		// Try to load from cache first
+		const cachedDataset = await this.loadFromCache(id);
+		if (cachedDataset) {
+			return cachedDataset;
+		}
 
-		// const cachedDataset = await this.loadFromCache(id);
-		// if (cachedDataset) {
-		// 	return cachedDataset;
-		// }
-
+		// Validate and process the dataset
 		await this.validateDataset(id, content, kind);
+		const zip = await JSZip.loadAsync(content, {base64: true});
 
-		// Decode and extract the dataset content
-		const zip = await JSZip.loadAsync(content, { base64: true });
-		const root = Object.keys(zip.files);
-		if (root[0] !== "courses/") {
-			throw new InsightError("Folder not named /courses");
+		let dataset: Dataset;
+		if (kind === InsightDatasetKind.Sections) {
+			dataset = await this.processSectionsDataset(id, zip);
+		} else if (kind === InsightDatasetKind.Rooms) {
+			dataset = await this.processRoomsDataset(id, zip);
+		} else {
+			throw new InsightError("Unsupported dataset kind");
 		}
-		const coursesFolder = zip.folder("courses");
-		if (!coursesFolder) {
-			throw new InsightError("No courses folder found in the dataset.");
-		}
-		const coursePromises: Promise<string>[] = [];
-		coursesFolder.forEach((relativePath, file) => {
-			coursePromises.push(file.async("text"));
-		});
-		const rawCourses: string[] = await Promise.all(coursePromises);
-		const sections = this.parseSections(rawCourses);
 
-		// Ensure at least one valid course was added
-		if (sections.length === 0) {
-			throw new InsightError("No valid sections to add.");
-		}
-		const dataset = new Dataset(id, sections, kind);
+		// Save to cache and return
 		await this.saveToCache(id, dataset);
 		return dataset;
 	}
 
-	// Helper function to validate id, kind, content
+	private async processSectionsDataset(id: string, zip: JSZip): Promise<Dataset> {
+		// Validate and extract the courses folder
+		const root = Object.keys(zip.files);
+		if (root[0] !== "courses/") {
+			throw new InsightError("Folder not named /courses");
+		}
+
+		const coursesFolder = zip.folder("courses");
+		if (!coursesFolder) {
+			throw new InsightError("No courses folder found in the dataset.");
+		}
+
+		// Process JSON files
+		const coursePromises: Promise<string>[] = [];
+		coursesFolder.forEach((relativePath, file) => {
+			coursePromises.push(file.async("text"));
+		});
+
+		const rawCourses: string[] = await Promise.all(coursePromises);
+		const sections = this.jsonProcessor.parseSections(rawCourses);
+
+		// Ensure at least one valid section was added
+		if (sections.length === 0) {
+			throw new InsightError("No valid sections to add.");
+		}
+
+		return new Dataset(id, sections, InsightDatasetKind.Sections);
+	}
+
+	private async processRoomsDataset(id: string, zip: JSZip): Promise<Dataset> {
+		const indexFile = zip.file("index.htm");
+		if (!indexFile) {
+			throw new InsightError("Missing index.htm file");
+		}
+
+		const indexContent = await indexFile.async("text");
+		const rooms = await this.htmlProcessor.processRoomsData(indexContent, zip);
+
+		if (rooms.length === 0) {
+			throw new InsightError("No valid rooms found in dataset");
+		}
+
+		return new Dataset(id, rooms, InsightDatasetKind.Rooms);
+	}
+
+	// Helper function to validate id and content
 	private async validateDataset(id: string, content: string, kind: InsightDatasetKind): Promise<void> {
 		// Check ID validity
 		if (id === null || !id || id.trim() === "" || id.includes("_")) {
 			throw new InsightError("Invalid dataset ID");
-		}
-
-		// Check for duplicate ID
-		if (kind !== InsightDatasetKind.Sections) {
-			throw new InsightError("Invalid dataset kind");
 		}
 
 		if (content === null) {
@@ -113,74 +143,7 @@ export default class DatasetProcessor {
 		}
 	}
 
-	// Helper function to parse course into sections, return sections
-	private parseSections(rawCourses: string[]): Section[] {
-		const sections: Section[] = [];
-
-		for (const rawCourse of rawCourses) {
-			try {
-				const parsedContent = JSON.parse(rawCourse);
-				if (Array.isArray(parsedContent.result) && parsedContent.result.length > 0) {
-					for (const item of parsedContent.result) {
-						try {
-							const section = this.convertToSection(item);
-							sections.push(section);
-						} catch (err) {
-							console.warn("Skipping invalid section:", err);
-						}
-					}
-				}
-			} catch (err) {
-				console.warn("Skipping invalid JSON file:", err);
-			}
-		}
-
-		return sections;
-	}
-
 	private decodeBase64(content: string): Buffer {
 		return Buffer.from(content, "base64");
-	}
-
-	// Convert JSON into Section class
-	private convertToSection(item: any): Section {
-		const requiredKeys = [
-			"Title",
-			"Section",
-			"id",
-			"Professor",
-			"Audit",
-			"Year",
-			"Course",
-			"Pass",
-			"Fail",
-			"Avg",
-			"Subject",
-		];
-
-		// Throw error if missing required key
-		for (const key of requiredKeys) {
-			if (!(key in item)) {
-				throw new InsightError(`Missing required property ${key} in item`);
-			}
-		}
-
-		// Convert Year to 1900 if Section is overall
-		if (item.Section.toLowerCase() === "overall") {
-			item.Year = 1900;
-		}
-
-		return new Section(
-			item.id,
-			item.Course,
-			item.Title,
-			item.Professor,
-			item.Subject,
-			item.Year,
-			item.Avg,
-			item.Pass,
-			item.Fail,
-			item.Audit
-		);
 	}
 }
