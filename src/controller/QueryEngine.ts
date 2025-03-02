@@ -369,7 +369,7 @@ export default class QueryEngine {
 		this.datasetID = parseColumns[0].split("_")[0];
 
 		//get all columns of interest from the dataset
-		const allSections: Section[] | undefined = this.insightFacade.dataMap.get(this.datasetID)?.sections;
+		const allSections: Section[] | undefined = this.insightFacade.dataMap.get(this.datasetID)?.getSections();
 
 		if (!allSections) {
 			throw new InsightError("Dataset ID is invalid");
