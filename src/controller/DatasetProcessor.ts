@@ -1,7 +1,7 @@
 import path from "path";
-import {InsightDatasetKind, InsightError} from "./IInsightFacade";
+import { InsightDatasetKind, InsightError } from "./IInsightFacade";
 import JSZip from "jszip";
-import {Dataset} from "./Dataset";
+import { Dataset } from "./Dataset";
 import fs from "fs-extra";
 import HTMLProcessor from "./HTMLProcessor";
 import JSONProcessor from "./JSONProcessor";
@@ -53,7 +53,6 @@ export default class DatasetProcessor {
 		}
 	}
 
-
 	public async processDataset(id: string, content: string, kind: InsightDatasetKind): Promise<Dataset> {
 		// Try to load from cache first
 		const cachedDataset = await this.loadFromCache(id);
@@ -63,7 +62,7 @@ export default class DatasetProcessor {
 
 		// Validate and process the dataset
 		await this.validateDataset(id, content, kind);
-		const zip = await JSZip.loadAsync(content, {base64: true});
+		const zip = await JSZip.loadAsync(content, { base64: true });
 
 		let dataset: Dataset;
 		if (kind === InsightDatasetKind.Sections) {

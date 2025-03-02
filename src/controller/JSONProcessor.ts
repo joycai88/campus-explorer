@@ -1,5 +1,5 @@
 import Section from "./Section";
-import {InsightError} from "./IInsightFacade";
+import { InsightError } from "./IInsightFacade";
 
 export default class JSONProcessor {
 	/**

@@ -1,4 +1,4 @@
-import {InsightDatasetKind, InsightError} from "./IInsightFacade";
+import { InsightDatasetKind, InsightError } from "./IInsightFacade";
 import Section from "./Section";
 import Room from "./Room";
 
@@ -9,7 +9,7 @@ export class Dataset {
 	public items: DatasetItem[];
 	public kind: InsightDatasetKind;
 
-	constructor(id: string, items: DatasetItem[] , kind: InsightDatasetKind) {
+	constructor(id: string, items: DatasetItem[], kind: InsightDatasetKind) {
 		this.id = id;
 		this.kind = kind;
 		this.items = items;
@@ -39,7 +39,6 @@ export class Dataset {
 		return new Dataset(id, convertedItems, kind);
 	}
 
-
 	public getNumRows(): number {
 		return this.items.length;
 	}
@@ -57,5 +56,4 @@ export class Dataset {
 		}
 		return this.items as Room[];
 	}
-
 }

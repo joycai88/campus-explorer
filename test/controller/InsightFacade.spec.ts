@@ -241,7 +241,6 @@ describe("InsightFacade", function () {
 
 		it("should pass when passing in given campus.zip", async function () {
 			try {
-
 				const result = await facade.addDataset("1", rooms, InsightDatasetKind.Rooms);
 				expect(result).to.be.an("array");
 				expect(result).to.include("1");
@@ -374,8 +373,6 @@ describe("InsightFacade", function () {
 				expect.fail(`Should not have thrown ${err}`);
 			}
 		});
-
-
 	});
 
 	describe("Cache", function () {
@@ -404,9 +401,6 @@ describe("InsightFacade", function () {
 
 			expect(result).to.be.a("string");
 		});
-
-
-
 	});
 
 	describe("PerformQuery", function () {

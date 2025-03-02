@@ -1,12 +1,11 @@
 import * as parse5 from "parse5";
 import Room from "./Room";
 import JSZip from "jszip";
-import {InsightError} from "./IInsightFacade";
+import { InsightError } from "./IInsightFacade";
 
 // CITATION: Used Claude AI as an aid
 
 export default class HTMLProcessor {
-
 	public async processRoomsData(indexContent: string, zip: JSZip): Promise<Room[]> {
 		const indexDocument = parse5.parse(indexContent);
 		const buildingTable = this.findTable(indexDocument);
@@ -15,26 +14,29 @@ export default class HTMLProcessor {
 			throw new InsightError("No valid building table in index.htm");
 		}
 
-		const rooms: Room[] = [];
-		// Add 'await' here to properly wait for the buildings data
 		const buildings = await this.extractBuildingsFromIndex(buildingTable);
 
-		for (const building of buildings) {
+		const buildingPromises = buildings.map(async (building) => {
 			const buildingFile = zip.file(this.normalizePath(building.href));
 
-			if (buildingFile) {
-				try {
-					const buildingContent = await buildingFile.async("text");
-					const buildingDocument = parse5.parse(buildingContent);
-					const buildingRooms = await this.processBuilding(buildingDocument, building);
-					rooms.push(...buildingRooms);
-				} catch (err) {
-					console.warn(`Failed to process building ${building.shortname}: ${err}`);
-				}
+			if (!buildingFile) {
+				return [];
 			}
-		}
 
-		return rooms;
+			try {
+				const buildingContent = await buildingFile.async("text");
+				const buildingDocument = parse5.parse(buildingContent);
+				return this.processBuilding(buildingDocument, building);
+			} catch (err) {
+				console.warn(`Failed to process building ${building.shortname}: ${err}`);
+				return [];
+			}
+		});
+
+		// Wait for all building promises to resolve and flatten the results
+		const rooms = await Promise.all(buildingPromises);
+
+		return rooms.flat();
 	}
 
 	private findTable(document: any): any {
@@ -62,7 +64,7 @@ export default class HTMLProcessor {
 			"views-field-field-building-code",
 			"views-field-title",
 			"views-field-field-building-address",
-			"views-field-nothing"
+			"views-field-nothing",
 		];
 
 		return validClasses.some((validClass) => classAttribute.includes(validClass));
@@ -72,93 +74,103 @@ export default class HTMLProcessor {
 		return path.replace(/^\.\//, "");
 	}
 
-	private async getGeolocation(address: string): Promise<{lat: number, lon: number}> {
+	private async getGeolocation(address: string): Promise<{ lat: number; lon: number }> {
 		const http = require("http");
 		const URI = encodeURI(address.trim());
 		const URL = `http://cs310.students.cs.ubc.ca:11316/api/v1/project_team188/${URI}`;
 
-		return new Promise((resolve, reject) => {
-			http.get(URL, (res: any) => {
-				let data = "";
+		return new Promise((resolve) => {
+			http
+				.get(URL, (res: any) => {
+					let data = "";
 
-				res.on("data", (chunk: any) => {
-					data += chunk;
-				});
+					res.on("data", (chunk: any) => {
+						data += chunk;
+					});
 
-				res.on("end", () => {
-					try {
-						const geoResponse = JSON.parse(data);
-						resolve({ lat: geoResponse.lat, lon: geoResponse.lon });
-					} catch (error) {
-						console.log("Error parsing geolocation data:", error);
-						resolve({ lat: 0, lon: 0 }); // Default values on error
-					}
+					res.on("end", () => {
+						try {
+							const geoResponse = JSON.parse(data);
+							resolve({ lat: geoResponse.lat, lon: geoResponse.lon });
+						} catch (error) {
+							console.log("Error parsing geolocation data:", error);
+							resolve({ lat: 0, lon: 0 }); // Default values on error
+						}
+					});
+				})
+				.on("error", (error: any) => {
+					console.log("Error fetching geolocation:", error);
+					resolve({ lat: 0, lon: 0 }); // Default values on network error
 				});
-			}).on("error", (error: any) => {
-				console.log("Error fetching geolocation:", error);
-				resolve({ lat: 0, lon: 0 }); // Default values on network error
-			});
 		});
 	}
 
-
-
-	private async extractBuildingsFromIndex(table: any): Promise<Array<{
-		href: string;
-		shortname: string;
-		fullname: string;
-		address: string;
-		lat: number;
-		lon: number;
-	}>>  {
-		const buildings: Array<{
+	private async extractBuildingsFromIndex(table: any): Promise<
+		Array<{
 			href: string;
 			shortname: string;
 			fullname: string;
 			address: string;
 			lat: number;
 			lon: number;
-		}> = [];
-
+		}>
+	> {
 		const rows = this.findElements(table, "tr");
+		const dataRows = rows.filter((row) => this.findElements(row, "th").length === 0);
 
-		for (const row of rows) {
+		const buildingPromises = dataRows.map(async (row) => {
 			try {
-				if (this.findElements(row, "th").length > 0) {
-					continue;
-				}
+				const buildingData = this.extractBuildingDataFromRow(row);
 
-				const shortname = this.extractCellTextByClass(row, "views-field-field-building-code");
-				const fullname = this.extractCellTextByClass(row, "views-field-title");
-				const address = this.extractCellTextByClass(row, "views-field-field-building-address");
-				const moreInfoCell = this.findCellByClass(row, "views-field-nothing");
-				let href = "";
-
-				if (moreInfoCell) {
-					const links = this.findElements(moreInfoCell, "a");
-					if (links.length > 0) {
-						href = this.getAttributeValue(links[0], "href") || "";
-					}
-				}
-
-				if (shortname && fullname && href) {
-					const geoLocation = await this.getGeolocation(address);
-
-					buildings.push({
-						shortname,
-						fullname,
-						address,
-						href,
+				if (buildingData.shortname && buildingData.fullname && buildingData.href) {
+					const geoLocation = await this.getGeolocation(buildingData.address);
+					return {
+						...buildingData,
 						lat: geoLocation.lat,
-						lon: geoLocation.lon
-					});
+						lon: geoLocation.lon,
+					};
 				}
-			} catch (err) {
-				console.warn(`Failed to process building row: ${err}`);
+				return null;
+			} catch (error) {
+				console.warn(`Failed to process building row: ${error}`);
+				return null;
 			}
+		});
+
+		// Check that all values are non-null
+		return (await Promise.all(buildingPromises)).filter((building): building is NonNullable<typeof building> =>
+			Boolean(building)
+		);
+	}
+
+	private extractBuildingDataFromRow(row: any): {
+		shortname: string;
+		fullname: string;
+		address: string;
+		href: string;
+	} {
+		const shortname = this.extractCellTextByClass(row, "views-field-field-building-code");
+		const fullname = this.extractCellTextByClass(row, "views-field-title");
+		const address = this.extractCellTextByClass(row, "views-field-field-building-address");
+		const href = this.extractHrefFromRow(row);
+
+		return {
+			shortname,
+			fullname,
+			address,
+			href,
+		};
+	}
+
+	private extractHrefFromRow(row: any): string {
+		const moreInfoCell = this.findCellByClass(row, "views-field-nothing");
+
+		if (!moreInfoCell) {
+			return "";
 		}
 
-		return buildings;
+		const links = this.findElements(moreInfoCell, "a");
+		return links.length > 0 ? this.getAttributeValue(links[0], "href") || "" : "";
 	}
 
 	private async processBuilding(document: any, buildingInfo: any): Promise<Room[]> {
@@ -251,13 +263,13 @@ export default class HTMLProcessor {
 
 	private findCellByClass(row: any, className: string): any {
 		const cells = this.findElements(row, "td");
-		return cells.find(cell => this.hasClass(cell, className));
+		return cells.find((cell) => this.hasClass(cell, className));
 	}
 
 	private findElements(node: any, tagName: string): any[] {
 		const elements: any[] = [];
 
-		const traverse = (current: any) => {
+		const traverse = (current: any): void => {
 			if (this.isElement(current) && current.tagName === tagName) {
 				elements.push(current);
 			}
@@ -276,7 +288,7 @@ export default class HTMLProcessor {
 	private getTextContent(element: any): string {
 		let text = "";
 
-		const traverse = (node: any) => {
+		const traverse = (node: any): void => {
 			if (node.nodeName === "#text") {
 				text += node.value;
 			}
@@ -293,9 +305,7 @@ export default class HTMLProcessor {
 	}
 
 	private findLinkHref(node: any, className: string): string {
-		const cell = this.findElements(node, "td").find((el) =>
-			this.hasClass(el, className)
-		);
+		const cell = this.findElements(node, "td").find((el) => this.hasClass(el, className));
 
 		if (!cell) {
 			return "";

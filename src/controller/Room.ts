@@ -1,4 +1,4 @@
-import {InsightError} from "./IInsightFacade";
+import { InsightError } from "./IInsightFacade";
 
 export default class Room {
 	private readonly fullname: string;
@@ -24,7 +24,8 @@ export default class Room {
 		seats: number,
 		type: string,
 		furniture: string,
-		href: string) {
+		href: string
+	) {
 		this.fullname = fullname;
 		this.shortname = shortname;
 		this.number = number;
@@ -50,7 +51,7 @@ export default class Room {
 			seats: this.seats,
 			type: this.type,
 			furniture: this.furniture,
-			href: this.href
+			href: this.href,
 		};
 	}
 
@@ -73,5 +74,4 @@ export default class Room {
 			json.href
 		);
 	}
-
 }
