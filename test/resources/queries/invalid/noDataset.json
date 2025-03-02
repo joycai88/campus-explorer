@@ -3,16 +3,16 @@
 	"input": {
 		"WHERE": {
 			"IS": {
-				"test_dept": "cpsc"
+				"none_dept": "cpsc"
 			}
 		},
 		"OPTIONS": {
 			"COLUMNS": [
-				"test_uuid",
-				"test_id",
-				"test_dept"
+				"none_uuid",
+				"none_id",
+				"none_dept"
 			],
-			"ORDER": "test_dept"
+			"ORDER": "none_dept"
 		}
 	},
 	"errorExpected": true,

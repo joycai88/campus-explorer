@@ -93,13 +93,13 @@ export default class HTMLProcessor {
 							const geoResponse = JSON.parse(data);
 							resolve({ lat: geoResponse.lat, lon: geoResponse.lon });
 						} catch (error) {
-							console.log("Error parsing geolocation data:", error);
+							console.warn("Error parsing geolocation data:", error);
 							resolve({ lat: 0, lon: 0 }); // Default values on error
 						}
 					});
 				})
 				.on("error", (error: any) => {
-					console.log("Error fetching geolocation:", error);
+					console.warn("Error fetching geolocation:", error);
 					resolve({ lat: 0, lon: 0 }); // Default values on network error
 				});
 		});
@@ -251,7 +251,7 @@ export default class HTMLProcessor {
 			furniture,
 			href
 		);
-		console.log(room);
+		// console.log(room);
 		return room;
 	}
 

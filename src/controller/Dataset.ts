@@ -18,20 +18,24 @@ export class Dataset {
 	public toJSON(): object {
 		return {
 			id: this.id,
-			sections: this.items.map((section) => section.toJSON()),
+			items: this.items.map((item) => item.toJSON()),
 			kind: this.kind,
 		};
 	}
 
 	public static fromJSON(json: any): Dataset {
 		const { id, kind, items } = json;
+		// console.log(json);
+		if (!id || !kind || !items) {
+			throw new InsightError("Invalid JSON structure for Dataset");
+		}
 
-		// Convert the items based on the dataset kind
 		let convertedItems: DatasetItem[];
+
 		if (kind === InsightDatasetKind.Sections) {
-			convertedItems = items.map((itemJson: any) => Section.fromJSON(itemJson));
+			convertedItems = items.map((sectionJson: any) => Section.fromJSON(sectionJson));
 		} else if (kind === InsightDatasetKind.Rooms) {
-			convertedItems = items.map((itemJson: any) => Room.fromJSON(itemJson));
+			convertedItems = items.map((roomJson: any) => Room.fromJSON(roomJson));
 		} else {
 			throw new InsightError(`Unknown dataset kind: ${kind}`);
 		}

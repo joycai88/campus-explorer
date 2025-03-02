@@ -223,9 +223,22 @@ describe("InsightFacade", function () {
 
 		it("should reject when index.htm does not exist", async function () {
 			try {
-				await facade.addDataset("1", rooms, InsightDatasetKind.Rooms);
+				const invalid = await getContentFromArchives("invalid_rooms.zip");
+				await facade.addDataset("1", invalid, InsightDatasetKind.Rooms);
 				expect.fail("Should have thrown an error.");
 			} catch (err) {
+				console.log(err);
+				expect(err).to.be.an.instanceOf(InsightError);
+			}
+		});
+
+		it("should reject when there are no valid rooms", async function () {
+			try {
+				const empty = await getContentFromArchives("invalid_rooms.zip");
+				await facade.addDataset("1", empty, InsightDatasetKind.Rooms);
+				expect.fail("Should have thrown an error.");
+			} catch (err) {
+				console.log(err);
 				expect(err).to.be.an.instanceOf(InsightError);
 			}
 		});
@@ -256,9 +269,19 @@ describe("InsightFacade", function () {
 			facade = new InsightFacade();
 		});
 
-		it("should return string for successful removal", async function () {
+		it("should return string for successful removal of sections", async function () {
 			try {
 				await facade.addDataset("1", sections, InsightDatasetKind.Sections);
+				const result = await facade.removeDataset("1");
+				expect(result).to.be.a("string");
+			} catch (err) {
+				expect.fail(`Should not have thrown ${err}`);
+			}
+		});
+
+		it("should return string for successful removal of rooms", async function () {
+			try {
+				await facade.addDataset("1", rooms, InsightDatasetKind.Rooms);
 				const result = await facade.removeDataset("1");
 				expect(result).to.be.a("string");
 			} catch (err) {
@@ -331,7 +354,7 @@ describe("InsightFacade", function () {
 			}
 		});
 
-		it("should return one dataset after a single valid dataset is added", async function () {
+		it("should return one dataset after a single valid COURSES dataset is added", async function () {
 			try {
 				const id = "ubc";
 				const kind = InsightDatasetKind.Sections;
@@ -344,6 +367,25 @@ describe("InsightFacade", function () {
 					id: id,
 					kind: kind,
 					numRows: 64612,
+				});
+			} catch (err) {
+				expect.fail(`Should not have thrown ${err}`);
+			}
+		});
+
+		it("should return one dataset after a single valid ROOMS dataset is added", async function () {
+			try {
+				const id = "ubc";
+				const kind = InsightDatasetKind.Rooms;
+				await facade.addDataset(id, rooms, kind);
+
+				const result = await facade.listDatasets();
+
+				expect(result).to.be.an("array").that.has.lengthOf(1);
+				expect(result[0]).to.deep.equal({
+					id: id,
+					kind: kind,
+					numRows: 364,
 				});
 			} catch (err) {
 				expect.fail(`Should not have thrown ${err}`);
@@ -373,6 +415,30 @@ describe("InsightFacade", function () {
 				expect.fail(`Should not have thrown ${err}`);
 			}
 		});
+
+		it("should pass after multiple valid datasets are added of different kind", async function () {
+			try {
+				await facade.addDataset("1", sections, InsightDatasetKind.Sections);
+				await facade.addDataset("2", rooms, InsightDatasetKind.Rooms);
+
+				const result = await facade.listDatasets();
+
+				expect(result).to.deep.include.members([
+					{
+						id: "1",
+						kind: InsightDatasetKind.Sections,
+						numRows: 64612,
+					},
+					{
+						id: "2",
+						kind: InsightDatasetKind.Rooms,
+						numRows: 364,
+					},
+				]);
+			} catch (err) {
+				expect.fail(`Should not have thrown ${err}`);
+			}
+		});
 	});
 
 	describe("Cache", function () {
@@ -380,6 +446,7 @@ describe("InsightFacade", function () {
 			await clearDisk();
 			facade = new InsightFacade();
 			await facade.addDataset("test", testSections, InsightDatasetKind.Sections);
+			await facade.addDataset("rooms", rooms, InsightDatasetKind.Rooms);
 		});
 
 		it("should be able to list dataset from new instance", async function () {
@@ -391,13 +458,25 @@ describe("InsightFacade", function () {
 					kind: InsightDatasetKind.Sections,
 					numRows: 2,
 				},
+				{
+					id: "rooms",
+					kind: InsightDatasetKind.Rooms,
+					numRows: 364,
+				},
 			]);
-			expect(result).to.be.an("array").that.has.lengthOf(1);
+			expect(result).to.be.an("array").that.has.lengthOf(2);
 		});
 
 		it("should be able to remove dataset from new instance", async function () {
 			const facade2 = new InsightFacade();
 			const result = await facade2.removeDataset("test");
+
+			expect(result).to.be.a("string");
+		});
+
+		it("should be able to remove rooms from new instance", async function () {
+			const facade2 = new InsightFacade();
+			const result = await facade2.removeDataset("rooms");
 
 			expect(result).to.be.a("string");
 		});
