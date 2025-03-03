@@ -35,10 +35,9 @@ export default class InsightFacade implements IInsightFacade {
 		this.datasets = [];
 		this.dataMap = new Map<string, Dataset>();
 
-		// this.syncCache().catch((err) => {
-		// 	console.error(`Failed to synchronize cache: ${err}`);
-		//
-		// });
+		this.syncCache().catch((err) => {
+			console.error(`Failed to synchronize cache: ${err}`);
+		});
 	}
 
 	private async syncCache(): Promise<void> {
