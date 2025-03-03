@@ -7,21 +7,22 @@ import { InsightError } from "./IInsightFacade";
 
 export default class HTMLProcessor {
 	public async processRoomsData(indexContent: string, zip: JSZip): Promise<Room[]> {
+		const isValidStructure = await this.validateFileStructure(zip);
+		if (!isValidStructure) {
+			throw new InsightError("Invalid file structure in dataset");
+		}
+
 		const indexDocument = parse5.parse(indexContent);
 		const buildingTable = this.findTable(indexDocument);
 
-		if (!buildingTable) {
-			throw new InsightError("No valid building table in index.htm");
-		}
+		if (!buildingTable) throw new InsightError("No valid building table in index.htm");
 
 		const buildings = await this.extractBuildingsFromIndex(buildingTable);
 
 		const buildingPromises = buildings.map(async (building) => {
 			const buildingFile = zip.file(this.normalizePath(building.href));
 
-			if (!buildingFile) {
-				return [];
-			}
+			if (!buildingFile) return [];
 
 			try {
 				const buildingContent = await buildingFile.async("text");
@@ -33,10 +34,19 @@ export default class HTMLProcessor {
 			}
 		});
 
-		// Wait for all building promises to resolve and flatten the results
 		const rooms = await Promise.all(buildingPromises);
 
 		return rooms.flat();
+	}
+
+	public async validateFileStructure(zip: JSZip): Promise<boolean> {
+		const indexFile = zip.file("index.htm");
+		if (!indexFile) return false;
+
+		const expectedPath = "campus/discover/buildings-and-classrooms/";
+		const files = Object.keys(zip.files);
+
+		return files.some((file) => file.startsWith(expectedPath) && file.endsWith(".htm") && file !== expectedPath);
 	}
 
 	private findTable(document: any): any {
@@ -55,11 +65,13 @@ export default class HTMLProcessor {
 
 	private hasValidClass(element: any): boolean {
 		const classAttribute = this.getAttributeValue(element, "class");
-		if (!classAttribute) {
+
+		if (classAttribute === null || classAttribute === undefined) {
 			return false;
 		}
 
 		const validClasses = [
+			"views-field",
 			"views-field-field-building-image",
 			"views-field-field-building-code",
 			"views-field-title",
@@ -74,7 +86,7 @@ export default class HTMLProcessor {
 		return path.replace(/^\.\//, "");
 	}
 
-	private async getGeolocation(address: string): Promise<{ lat: number; lon: number }> {
+	private async getGeolocation(address: string): Promise<any> {
 		const http = require("http");
 		const URI = encodeURI(address.trim());
 		const URL = `http://cs310.students.cs.ubc.ca:11316/api/v1/project_team188/${URI}`;
@@ -91,16 +103,26 @@ export default class HTMLProcessor {
 					res.on("end", () => {
 						try {
 							const geoResponse = JSON.parse(data);
-							resolve({ lat: geoResponse.lat, lon: geoResponse.lon });
+
+							if (geoResponse.error) {
+								resolve(null);
+								return;
+							}
+
+							if (geoResponse.lat !== undefined && geoResponse.lon !== undefined) {
+								resolve({ lat: geoResponse.lat, lon: geoResponse.lon });
+							} else {
+								resolve(null);
+							}
 						} catch (error) {
 							console.warn("Error parsing geolocation data:", error);
-							resolve({ lat: 0, lon: 0 }); // Default values on error
+							resolve(null);
 						}
 					});
 				})
 				.on("error", (error: any) => {
 					console.warn("Error fetching geolocation:", error);
-					resolve({ lat: 0, lon: 0 }); // Default values on network error
+					resolve(null);
 				});
 		});
 	}
@@ -124,6 +146,7 @@ export default class HTMLProcessor {
 
 				if (buildingData.shortname && buildingData.fullname && buildingData.href) {
 					const geoLocation = await this.getGeolocation(buildingData.address);
+					if (!geoLocation) return null;
 					return {
 						...buildingData,
 						lat: geoLocation.lat,
@@ -132,12 +155,11 @@ export default class HTMLProcessor {
 				}
 				return null;
 			} catch (error) {
-				console.warn(`Failed to process building row: ${error}`);
+				console.warn(error);
 				return null;
 			}
 		});
 
-		// Check that all values are non-null
 		return (await Promise.all(buildingPromises)).filter((building): building is NonNullable<typeof building> =>
 			Boolean(building)
 		);
@@ -226,39 +248,51 @@ export default class HTMLProcessor {
 	}
 
 	private processRoomRow(row: any, buildingInfo: any): Room | null {
-		const number = this.extractCellTextByClass(row, "views-field-field-room-number");
-		const capacityText = this.extractCellTextByClass(row, "views-field-field-room-capacity");
-		const seats = parseInt(capacityText) || 0;
-		const furniture = this.extractCellTextByClass(row, "views-field-field-room-furniture");
-		const type = this.extractCellTextByClass(row, "views-field-field-room-type");
-		const href = this.findLinkHref(row, "views-field-nothing");
+		try {
+			const number = this.extractCellTextByClass(row, "views-field-field-room-number");
+			const capacityText = this.extractCellTextByClass(row, "views-field-field-room-capacity");
+			const seats = Number(capacityText) || -1;
+			const furniture = this.extractCellTextByClass(row, "views-field-field-room-furniture");
+			const type = this.extractCellTextByClass(row, "views-field-field-room-type");
+			const href = this.findLinkHref(row, "views-field-nothing");
 
-		if (!number || seats <= 0) {
+			if (
+				!buildingInfo.fullname ||
+				!buildingInfo.shortname ||
+				!buildingInfo.address ||
+				buildingInfo.lat === undefined ||
+				buildingInfo.lon === undefined
+			)
+				return null;
+
+			const name = buildingInfo.shortname + "_" + number;
+
+			return new Room(
+				buildingInfo.fullname,
+				buildingInfo.shortname,
+				number,
+				name,
+				buildingInfo.address,
+				buildingInfo.lat,
+				buildingInfo.lon,
+				seats,
+				type,
+				furniture,
+				href
+			);
+		} catch (err) {
+			console.warn("Skipped due to missing field:", buildingInfo.shortname, err);
 			return null;
 		}
-
-		const name = buildingInfo.shortname + "_" + number;
-		const room = new Room(
-			buildingInfo.fullname,
-			buildingInfo.shortname,
-			number,
-			name,
-			buildingInfo.address,
-			buildingInfo.lat,
-			buildingInfo.lon,
-			seats,
-			type,
-			furniture,
-			href
-		);
-		// console.log(room);
-		return room;
 	}
 
-	// DOM Helper Methods
 	private extractCellTextByClass(row: any, className: string): string {
 		const cell = this.findCellByClass(row, className);
-		return cell ? this.getTextContent(cell).trim() : "";
+		if (cell) {
+			return this.getTextContent(cell).trim();
+		} else {
+			throw new Error("missing class");
+		}
 	}
 
 	private findCellByClass(row: any, className: string): any {
@@ -307,9 +341,7 @@ export default class HTMLProcessor {
 	private findLinkHref(node: any, className: string): string {
 		const cell = this.findElements(node, "td").find((el) => this.hasClass(el, className));
 
-		if (!cell) {
-			return "";
-		}
+		if (!cell) throw new Error("missing href class");
 
 		const link = this.findElements(cell, "a")[0];
 		return link ? this.getAttributeValue(link, "href") || "" : "";
