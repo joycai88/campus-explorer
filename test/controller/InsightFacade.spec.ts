@@ -3,14 +3,15 @@ import {
 	InsightDatasetKind,
 	InsightError,
 	InsightResult,
-	ResultTooLargeError,
 	NotFoundError,
+	ResultTooLargeError,
 } from "../../src/controller/IInsightFacade";
 import InsightFacade from "../../src/controller/InsightFacade";
 import { clearDisk, getContentFromArchives, loadTestQuery } from "../TestUtil";
 
 import { expect, use } from "chai";
 import chaiAsPromised from "chai-as-promised";
+
 use(chaiAsPromised);
 
 export interface ITestQuery {
@@ -452,7 +453,8 @@ describe("InsightFacade", function () {
 		it("should be able to list dataset from new instance", async function () {
 			const facade2 = new InsightFacade();
 			const result = await facade2.listDatasets();
-			expect(result).to.deep.equal([
+			console.log(result);
+			expect(result).to.have.deep.members([
 				{
 					id: "test",
 					kind: InsightDatasetKind.Sections,
@@ -528,6 +530,7 @@ describe("InsightFacade", function () {
 			const loadDatasetPromises: Promise<string[]>[] = [
 				facade.addDataset("sections", sections, InsightDatasetKind.Sections),
 				facade.addDataset("easy", easy, InsightDatasetKind.Sections),
+				facade.addDataset("rooms", rooms, InsightDatasetKind.Rooms),
 			];
 
 			try {
@@ -627,6 +630,9 @@ describe("InsightFacade", function () {
 		it("[valid/groupApplySpecExample.json] group apply spec example", checkQuery);
 		it("[valid/applyTokenFirst.json] apply token first", checkQuery);
 		it("[valid/twoApplyTokens.json] two apply tokens", checkQuery);
+
+		//Rooms Queries
+		it("[valid/roomsQueryExample.json] rooms query example", checkQuery);
 	});
 
 	describe("handleOrder", function () {

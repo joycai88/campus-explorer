@@ -124,6 +124,7 @@ export default class InsightFacade implements IInsightFacade {
 
 		//handleOPTIONS sets up results
 		this.queryEngine.handleOPTIONS(jsonQuery.OPTIONS, datasetID);
+
 		//filters results based on user inputs
 		let result: InsightResult[] = [];
 		try {

@@ -1,6 +1,7 @@
 import { InsightError, InsightResult, ResultTooLargeError } from "./IInsightFacade";
 import InsightFacade from "./InsightFacade";
 import Section from "./Section";
+import Room from "./Room";
 
 export default class QueryEngine {
 	private parsedQuery: InsightResult[];
@@ -13,7 +14,20 @@ export default class QueryEngine {
 	private doTransform: boolean;
 
 	//constants for EBNF validation
-	private allColumns: string[] = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+	private allSections: string[] = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+	private allRooms: string[] = [
+		"fullname",
+		"shortname",
+		"number",
+		"name",
+		"address",
+		"lat",
+		"lon",
+		"seats",
+		"type",
+		"furniture",
+		"href",
+	];
 
 	constructor(insightFacade: InsightFacade) {
 		this.parsedQuery = [];
@@ -65,15 +79,10 @@ export default class QueryEngine {
 
 		//recurse through logic comparators in WHERE to filter options
 		for (const key in where) {
-			if (key === "IS") {
-				result = this.handleSComp(where[key]);
-			} else if (key === "GT" || key === "LT" || key === "EQ") {
-				result = this.handleMComp(where[key], key);
-			} else if (key === "AND" || key === "OR") {
-				result = this.handleLComp(where[key], key);
-			} else if (key === "NOT") {
-				result = this.handleNOT(where[key]);
-			}
+			if (key === "IS") result = this.handleSComp(where[key]);
+			else if (key === "GT" || key === "LT" || key === "EQ") result = this.handleMComp(where[key], key);
+			else if (key === "AND" || key === "OR") result = this.handleLComp(where[key], key);
+			else if (key === "NOT") result = this.handleNOT(where[key]);
 		}
 		return result;
 	}
@@ -101,11 +110,9 @@ export default class QueryEngine {
 		const allResults: InsightResult[][] = lcomp.map((c: any) => this.parseTree(c));
 
 		//recursion should be done at this step
-		if (cType === "AND") {
-			return this.handleAND(allResults);
-		} else if (cType === "OR") {
-			return this.handleOR(allResults);
-		}
+		if (cType === "AND") return this.handleAND(allResults);
+		else if (cType === "OR") return this.handleOR(allResults);
+
 		return [];
 	}
 
@@ -375,17 +382,30 @@ export default class QueryEngine {
 		this.columns = columns;
 
 		//get all columns of interest from the dataset
-		const allSections: Section[] | undefined = this.insightFacade.dataMap.get(this.datasetID)?.getSections();
+		let allData: Section[] | Room[] | undefined;
+		const isRoom: boolean | undefined = this.insightFacade.dataMap.get(this.datasetID)?.isRooms();
 
-		if (!allSections) {
+		if (isRoom) {
+			allData = this.insightFacade.dataMap.get(this.datasetID)?.getRooms();
+		} else {
+			allData = this.insightFacade.dataMap.get(this.datasetID)?.getSections();
+		}
+
+		if (!allData) {
 			throw new InsightError("Dataset ID is invalid");
 		}
 
 		//setup whole dataset
-		for (const section of allSections) {
+		for (const section of allData) {
 			const result: InsightResult = {};
-			for (const column of this.allColumns) {
-				result[this.datasetID + "_" + column] = (section as any)[column];
+			if (isRoom) {
+				for (const column of this.allRooms) {
+					result[this.datasetID + "_" + column] = (section as any)[column];
+				}
+			} else {
+				for (const column of this.allSections) {
+					result[this.datasetID + "_" + column] = (section as any)[column];
+				}
 			}
 			this.dataset.push(result);
 		}
