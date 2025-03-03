@@ -38,33 +38,28 @@ export default class HTMLProcessor {
 		const tables = this.findElements(document, "table");
 
 		for (const table of tables) {
-			const cells = this.findElements(table, "td");
-			for (const cell of cells) {
-				if (this.hasValidClass(cell)) {
-					return table;
-				}
+			// Get all header cells in the table
+			const headers = this.findElements(table, "th");
+
+			// Check if all required headers are present
+			const requiredClasses = [
+				"views-field-field-building-image",
+				"views-field-field-building-code",
+				"views-field-title",
+				"views-field-field-building-address",
+				"views-field-nothing",
+			];
+
+			// Check if all required headers exist in this table
+			const hasAllRequiredHeaders = requiredClasses.every((requiredClass) =>
+				headers.some((header) => this.hasClass(header, requiredClass))
+			);
+
+			if (hasAllRequiredHeaders) {
+				return table;
 			}
 		}
 		return null;
-	}
-
-	private hasValidClass(element: any): boolean {
-		const classAttribute = this.getAttributeValue(element, "class");
-
-		if (classAttribute === null || classAttribute === undefined) {
-			return false;
-		}
-
-		const validClasses = [
-			"views-field",
-			"views-field-field-building-image",
-			"views-field-field-building-code",
-			"views-field-title",
-			"views-field-field-building-address",
-			"views-field-nothing",
-		];
-
-		return validClasses.some((validClass) => classAttribute.includes(validClass));
 	}
 
 	private normalizePath(path: string): string {
@@ -234,21 +229,14 @@ export default class HTMLProcessor {
 
 	private processRoomRow(row: any, buildingInfo: any): Room | null {
 		try {
+			if (!this.validateRoomRow(row, buildingInfo)) return null;
+
 			const number = this.extractCellTextByClass(row, "views-field-field-room-number");
 			const capacityText = this.extractCellTextByClass(row, "views-field-field-room-capacity");
 			const seats = parseInt(capacityText) || 0;
 			const furniture = this.extractCellTextByClass(row, "views-field-field-room-furniture");
 			const type = this.extractCellTextByClass(row, "views-field-field-room-type");
 			const href = this.findLinkHref(row, "views-field-nothing");
-
-			if (
-				!buildingInfo.fullname ||
-				!buildingInfo.shortname ||
-				!buildingInfo.address ||
-				buildingInfo.lat === undefined ||
-				buildingInfo.lon === undefined
-			)
-				return null;
 
 			const name = buildingInfo.shortname + "_" + number;
 
@@ -269,6 +257,29 @@ export default class HTMLProcessor {
 			console.warn("Skipped due to missing field:", buildingInfo.shortname, err);
 			return null;
 		}
+	}
+
+	private validateRoomRow(row: any, buildingInfo: any): boolean {
+		const requiredRoomFields = [
+			"views-field-field-room-number",
+			"views-field-field-room-capacity",
+			"views-field-field-room-furniture",
+			"views-field-field-room-type",
+		];
+
+		const allFieldsPresent = requiredRoomFields.every((field) => {
+			const cell = this.findCellByClass(row, field);
+			return cell !== undefined && cell !== null;
+		});
+
+		const buildingInfoMissing =
+			!buildingInfo.fullname ||
+			!buildingInfo.shortname ||
+			!buildingInfo.address ||
+			buildingInfo.lat === undefined ||
+			buildingInfo.lon === undefined;
+
+		return allFieldsPresent && !buildingInfoMissing;
 	}
 
 	private extractCellTextByClass(row: any, className: string): string {
