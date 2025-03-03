@@ -7,11 +7,6 @@ import { InsightError } from "./IInsightFacade";
 
 export default class HTMLProcessor {
 	public async processRoomsData(indexContent: string, zip: JSZip): Promise<Room[]> {
-		const isValidStructure = await this.validateFileStructure(zip);
-		if (!isValidStructure) {
-			throw new InsightError("Invalid file structure in dataset");
-		}
-
 		const indexDocument = parse5.parse(indexContent);
 		const buildingTable = this.findTable(indexDocument);
 
@@ -37,16 +32,6 @@ export default class HTMLProcessor {
 		const rooms = await Promise.all(buildingPromises);
 
 		return rooms.flat();
-	}
-
-	public async validateFileStructure(zip: JSZip): Promise<boolean> {
-		const indexFile = zip.file("index.htm");
-		if (!indexFile) return false;
-
-		const expectedPath = "campus/discover/buildings-and-classrooms/";
-		const files = Object.keys(zip.files);
-
-		return files.some((file) => file.startsWith(expectedPath) && file.endsWith(".htm") && file !== expectedPath);
 	}
 
 	private findTable(document: any): any {
@@ -251,7 +236,7 @@ export default class HTMLProcessor {
 		try {
 			const number = this.extractCellTextByClass(row, "views-field-field-room-number");
 			const capacityText = this.extractCellTextByClass(row, "views-field-field-room-capacity");
-			const seats = Number(capacityText) || -1;
+			const seats = parseInt(capacityText) || 0;
 			const furniture = this.extractCellTextByClass(row, "views-field-field-room-furniture");
 			const type = this.extractCellTextByClass(row, "views-field-field-room-type");
 			const href = this.findLinkHref(row, "views-field-nothing");
