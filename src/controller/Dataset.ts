@@ -47,6 +47,10 @@ export class Dataset {
 		return this.items.length;
 	}
 
+	public isRooms(): boolean {
+		return this.kind === InsightDatasetKind.Rooms;
+	}
+
 	public getSections(): Section[] {
 		if (this.kind !== InsightDatasetKind.Sections) {
 			throw new Error("This dataset does not contain sections");

@@ -1,0 +1,478 @@
+{
+	"title": "apply token first",
+	"input": {
+		"WHERE": {
+			"IS": {
+				"sections_dept": "cpsc"
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"count",
+				"sections_dept",
+				"sections_instructor"
+			]
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"sections_dept",
+				"sections_instructor"
+			],
+			"APPLY": [
+				{
+					"count": {
+						"COUNT": "sections_uuid"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"count": 15,
+			"sections_dept": "cpsc",
+			"sections_instructor": "kiczales, gregor"
+		},
+		{
+			"count": 25,
+			"sections_dept": "cpsc",
+			"sections_instructor": "allen, meghan"
+		},
+		{
+			"count": 10,
+			"sections_dept": "cpsc",
+			"sections_instructor": "garcia, ronald"
+		},
+		{
+			"count": 5,
+			"sections_dept": "cpsc",
+			"sections_instructor": "aiello, william"
+		},
+		{
+			"count": 17,
+			"sections_dept": "cpsc",
+			"sections_instructor": "carter, paul martin"
+		},
+		{
+			"count": 533,
+			"sections_dept": "cpsc",
+			"sections_instructor": ""
+		},
+		{
+			"count": 7,
+			"sections_dept": "cpsc",
+			"sections_instructor": "little, james joseph"
+		},
+		{
+			"count": 8,
+			"sections_dept": "cpsc",
+			"sections_instructor": "mcgrenere, joanna"
+		},
+		{
+			"count": 5,
+			"sections_dept": "cpsc",
+			"sections_instructor": "greif, chen"
+		},
+		{
+			"count": 23,
+			"sections_dept": "cpsc",
+			"sections_instructor": "wolfman, steven"
+		},
+		{
+			"count": 2,
+			"sections_dept": "cpsc",
+			"sections_instructor": "berg, celina"
+		},
+		{
+			"count": 19,
+			"sections_dept": "cpsc",
+			"sections_instructor": "eiselt, kurt"
+		},
+		{
+			"count": 36,
+			"sections_dept": "cpsc",
+			"sections_instructor": "tsiknis, georgios"
+		},
+		{
+			"count": 2,
+			"sections_dept": "cpsc",
+			"sections_instructor": "cooper, kendra"
+		},
+		{
+			"count": 30,
+			"sections_dept": "cpsc",
+			"sections_instructor": "belleville, patrice"
+		},
+		{
+			"count": 12,
+			"sections_dept": "cpsc",
+			"sections_instructor": "voll, kimberly"
+		},
+		{
+			"count": 6,
+			"sections_dept": "cpsc",
+			"sections_instructor": "woodham, robert"
+		},
+		{
+			"count": 2,
+			"sections_dept": "cpsc",
+			"sections_instructor": "dulat, margaret"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "gao, xi"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "tompkins, david a d"
+		},
+		{
+			"count": 10,
+			"sections_dept": "cpsc",
+			"sections_instructor": "baniassad, elisa"
+		},
+		{
+			"count": 5,
+			"sections_dept": "cpsc",
+			"sections_instructor": "murphy, gail"
+		},
+		{
+			"count": 3,
+			"sections_dept": "cpsc",
+			"sections_instructor": "beschastnikh, ivan"
+		},
+		{
+			"count": 13,
+			"sections_dept": "cpsc",
+			"sections_instructor": "hutchinson, norman"
+		},
+		{
+			"count": 17,
+			"sections_dept": "cpsc",
+			"sections_instructor": "feeley, michael"
+		},
+		{
+			"count": 2,
+			"sections_dept": "cpsc",
+			"sections_instructor": "warfield, andrew"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "goldberg, murray"
+		},
+		{
+			"count": 9,
+			"sections_dept": "cpsc",
+			"sections_instructor": "munzner, tamara"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "darwish, mohammad mostafa"
+		},
+		{
+			"count": 26,
+			"sections_dept": "cpsc",
+			"sections_instructor": "acton, donald"
+		},
+		{
+			"count": 13,
+			"sections_dept": "cpsc",
+			"sections_instructor": "hu, alan"
+		},
+		{
+			"count": 4,
+			"sections_dept": "cpsc",
+			"sections_instructor": "khosravi, hassan"
+		},
+		{
+			"count": 19,
+			"sections_dept": "cpsc",
+			"sections_instructor": "knorr, edwin max"
+		},
+		{
+			"count": 12,
+			"sections_dept": "cpsc",
+			"sections_instructor": "evans, william"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "kotthoff, lars"
+		},
+		{
+			"count": 4,
+			"sections_dept": "cpsc",
+			"sections_instructor": "harvey, nicholas"
+		},
+		{
+			"count": 4,
+			"sections_dept": "cpsc",
+			"sections_instructor": "sheffer, alla"
+		},
+		{
+			"count": 10,
+			"sections_dept": "cpsc",
+			"sections_instructor": "mitchell, ian"
+		},
+		{
+			"count": 6,
+			"sections_dept": "cpsc",
+			"sections_instructor": "ascher, uri michael"
+		},
+		{
+			"count": 2,
+			"sections_dept": "cpsc",
+			"sections_instructor": "ascher, uri michael;greif, chen"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "rees, tyrone"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "gelbart, michael"
+		},
+		{
+			"count": 7,
+			"sections_dept": "cpsc",
+			"sections_instructor": "lakshmanan, laks"
+		},
+		{
+			"count": 5,
+			"sections_dept": "cpsc",
+			"sections_instructor": "ng, raymond tak-yan"
+		},
+		{
+			"count": 4,
+			"sections_dept": "cpsc",
+			"sections_instructor": "pottinger, rachel"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "palyart-lamarche, marc"
+		},
+		{
+			"count": 3,
+			"sections_dept": "cpsc",
+			"sections_instructor": "holmes, reid"
+		},
+		{
+			"count": 7,
+			"sections_dept": "cpsc",
+			"sections_instructor": "wohlstadter, eric"
+		},
+		{
+			"count": 3,
+			"sections_dept": "cpsc",
+			"sections_instructor": "ernst, neil"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "fritz, thomas"
+		},
+		{
+			"count": 2,
+			"sections_dept": "cpsc",
+			"sections_instructor": "shepherd, david"
+		},
+		{
+			"count": 3,
+			"sections_dept": "cpsc",
+			"sections_instructor": "de volder, kris"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "dunfield, joshua"
+		},
+		{
+			"count": 10,
+			"sections_dept": "cpsc",
+			"sections_instructor": "poole, david"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "sagaii, sara mahboubeh"
+		},
+		{
+			"count": 2,
+			"sections_dept": "cpsc",
+			"sections_instructor": "van de panne, michiel"
+		},
+		{
+			"count": 2,
+			"sections_dept": "cpsc",
+			"sections_instructor": "pai, dinesh"
+		},
+		{
+			"count": 2,
+			"sections_dept": "cpsc",
+			"sections_instructor": "bridson, robert"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "bessmeltsev, mikhail"
+		},
+		{
+			"count": 2,
+			"sections_dept": "cpsc",
+			"sections_instructor": "heidrich, wolfgang"
+		},
+		{
+			"count": 3,
+			"sections_dept": "cpsc",
+			"sections_instructor": "krasic, charles"
+		},
+		{
+			"count": 2,
+			"sections_dept": "cpsc",
+			"sections_instructor": "vuong, son"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "awad, ahmed"
+		},
+		{
+			"count": 4,
+			"sections_dept": "cpsc",
+			"sections_instructor": "meyer, irmtraud margret"
+		},
+		{
+			"count": 5,
+			"sections_dept": "cpsc",
+			"sections_instructor": "manuch, jan"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "schroeder, jonatan"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "malka, lior"
+		},
+		{
+			"count": 10,
+			"sections_dept": "cpsc",
+			"sections_instructor": "conati, cristina"
+		},
+		{
+			"count": 14,
+			"sections_dept": "cpsc",
+			"sections_instructor": "carenini, giuseppe"
+		},
+		{
+			"count": 6,
+			"sections_dept": "cpsc",
+			"sections_instructor": "leyton-brown, kevin"
+		},
+		{
+			"count": 4,
+			"sections_dept": "cpsc",
+			"sections_instructor": "mackworth, alan"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "hutter, frank"
+		},
+		{
+			"count": 4,
+			"sections_dept": "cpsc",
+			"sections_instructor": "schmidt, mark"
+		},
+		{
+			"count": 6,
+			"sections_dept": "cpsc",
+			"sections_instructor": "de freitas, joao"
+		},
+		{
+			"count": 2,
+			"sections_dept": "cpsc",
+			"sections_instructor": "doucet, arnaud"
+		},
+		{
+			"count": 2,
+			"sections_dept": "cpsc",
+			"sections_instructor": "murphy, kevin"
+		},
+		{
+			"count": 4,
+			"sections_dept": "cpsc",
+			"sections_instructor": "dawson, jessica"
+		},
+		{
+			"count": 16,
+			"sections_dept": "cpsc",
+			"sections_instructor": "maclean, karon"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "dawson, jessica;maclean, karon"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "murphy-hill, emerson"
+		},
+		{
+			"count": 8,
+			"sections_dept": "cpsc",
+			"sections_instructor": "wagner, alan"
+		},
+		{
+			"count": 6,
+			"sections_dept": "cpsc",
+			"sections_instructor": "greenstreet, mark"
+		},
+		{
+			"count": 8,
+			"sections_dept": "cpsc",
+			"sections_instructor": "kirkpatrick, david"
+		},
+		{
+			"count": 12,
+			"sections_dept": "cpsc",
+			"sections_instructor": "friedman, joel"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "tung, frederick"
+		},
+		{
+			"count": 3,
+			"sections_dept": "cpsc",
+			"sections_instructor": "luk, joseph"
+		},
+		{
+			"count": 3,
+			"sections_dept": "cpsc",
+			"sections_instructor": "hoos, holger"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "kirkpatrick, bonnie;manuch, jan"
+		},
+		{
+			"count": 1,
+			"sections_dept": "cpsc",
+			"sections_instructor": "booth, kellogg"
+		}
+	]
+}

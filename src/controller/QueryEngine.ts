@@ -1,18 +1,33 @@
 import { InsightError, InsightResult, ResultTooLargeError } from "./IInsightFacade";
 import InsightFacade from "./InsightFacade";
 import Section from "./Section";
+import Room from "./Room";
 
 export default class QueryEngine {
 	private parsedQuery: InsightResult[];
 	private datasetID: string;
 	private insightFacade: InsightFacade;
-	private sortKey: string;
+	private sortKey: string | object;
 	private columns: string[];
 	private dataset: InsightResult[];
 	private doOrder: boolean;
+	private doTransform: boolean;
 
 	//constants for EBNF validation
-	private allColumns: string[] = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+	private allSections: string[] = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+	private allRooms: string[] = [
+		"fullname",
+		"shortname",
+		"number",
+		"name",
+		"address",
+		"lat",
+		"lon",
+		"seats",
+		"type",
+		"furniture",
+		"href",
+	];
 
 	constructor(insightFacade: InsightFacade) {
 		this.parsedQuery = [];
@@ -22,6 +37,7 @@ export default class QueryEngine {
 		this.columns = [];
 		this.dataset = [];
 		this.doOrder = false;
+		this.doTransform = false;
 	}
 
 	/**
@@ -34,12 +50,15 @@ export default class QueryEngine {
 		this.columns = [];
 		this.dataset = [];
 		this.doOrder = false;
+		this.doTransform = false;
 	}
 
 	/**
 	 * Parse the WHERE block of the query
 	 */
-	public handleWHERE(where: any): InsightResult[] {
+	public handleWHERE(where: any, hasTransform: boolean): InsightResult[] {
+		this.doTransform = hasTransform;
+
 		//if WHERE:{}, return everything
 		if (Object.keys(where).length === 0) {
 			this.parsedQuery = this.dataset;
@@ -60,15 +79,10 @@ export default class QueryEngine {
 
 		//recurse through logic comparators in WHERE to filter options
 		for (const key in where) {
-			if (key === "IS") {
-				result = this.handleSComp(where[key]);
-			} else if (key === "GT" || key === "LT" || key === "EQ") {
-				result = this.handleMComp(where[key], key);
-			} else if (key === "AND" || key === "OR") {
-				result = this.handleLComp(where[key], key);
-			} else if (key === "NOT") {
-				result = this.handleNOT(where[key]);
-			}
+			if (key === "IS") result = this.handleSComp(where[key]);
+			else if (key === "GT" || key === "LT" || key === "EQ") result = this.handleMComp(where[key], key);
+			else if (key === "AND" || key === "OR") result = this.handleLComp(where[key], key);
+			else if (key === "NOT") result = this.handleNOT(where[key]);
 		}
 		return result;
 	}
@@ -96,11 +110,9 @@ export default class QueryEngine {
 		const allResults: InsightResult[][] = lcomp.map((c: any) => this.parseTree(c));
 
 		//recursion should be done at this step
-		if (cType === "AND") {
-			return this.handleAND(allResults);
-		} else if (cType === "OR") {
-			return this.handleOR(allResults);
-		}
+		if (cType === "AND") return this.handleAND(allResults);
+		else if (cType === "OR") return this.handleOR(allResults);
+
 		return [];
 	}
 
@@ -310,11 +322,8 @@ export default class QueryEngine {
 	/**
 	 * Parse the OPTIONS block of the query
 	 */
-	public handleOPTIONS(options: any): InsightResult[] {
-		//check that options exists
-		if (options === undefined) {
-			throw new InsightError("Invalid query string");
-		}
+	public handleOPTIONS(options: any, datasetID: string | null): InsightResult[] {
+		this.datasetID = datasetID!;
 		this.columns = this.handleCOLUMNS(options.COLUMNS);
 
 		//only order if order exists
@@ -329,6 +338,10 @@ export default class QueryEngine {
 	 * Ending work such as filtering columns & ordering
 	 */
 	public finish(): InsightResult[] {
+		//only filter the columns if there is no transformation
+		//otherwise QueryTransformer will handle the columns
+		if (this.doTransform) return this.parsedQuery;
+
 		const tempResult: InsightResult[] = [];
 
 		for (const res of this.parsedQuery) {
@@ -343,16 +356,20 @@ export default class QueryEngine {
 		}
 
 		this.parsedQuery = tempResult;
-		if (this.doOrder) {
-			this.handleORDER(this.sortKey);
-		}
-
 		//check that size of results no bigger than 5000
 		const maxSize = 5000;
 		if (this.parsedQuery.length > maxSize) {
 			throw new ResultTooLargeError(
 				"The result is too big. Only queries with a maximum " + "of 5000 results are supported."
 			);
+		}
+
+		if (this.doOrder) {
+			if (typeof this.sortKey === "object") {
+				this.handleSORT(this.sortKey);
+			} else {
+				this.handleORDER(this.sortKey);
+			}
 		}
 
 		return this.parsedQuery;
@@ -362,24 +379,33 @@ export default class QueryEngine {
 	 * Parse the COLUMNS block of the query
 	 */
 	public handleCOLUMNS(columns: any): string[] {
-		const parseColumns = columns as string[];
 		this.columns = columns;
 
-		//Assign dataset id from first column key
-		this.datasetID = parseColumns[0].split("_")[0];
-
 		//get all columns of interest from the dataset
-		const allSections: Section[] | undefined = this.insightFacade.dataMap.get(this.datasetID)?.getSections();
+		let allData: Section[] | Room[] | undefined;
+		const isRoom: boolean | undefined = this.insightFacade.dataMap.get(this.datasetID)?.isRooms();
 
-		if (!allSections) {
+		if (isRoom) {
+			allData = this.insightFacade.dataMap.get(this.datasetID)?.getRooms();
+		} else {
+			allData = this.insightFacade.dataMap.get(this.datasetID)?.getSections();
+		}
+
+		if (!allData) {
 			throw new InsightError("Dataset ID is invalid");
 		}
 
 		//setup whole dataset
-		for (const section of allSections) {
+		for (const section of allData) {
 			const result: InsightResult = {};
-			for (const column of this.allColumns) {
-				result[this.datasetID + "_" + column] = (section as any)[column];
+			if (isRoom) {
+				for (const column of this.allRooms) {
+					result[this.datasetID + "_" + column] = (section as any)[column];
+				}
+			} else {
+				for (const column of this.allSections) {
+					result[this.datasetID + "_" + column] = (section as any)[column];
+				}
 			}
 			this.dataset.push(result);
 		}
@@ -393,23 +419,48 @@ export default class QueryEngine {
 	 * Citation: ChatGPT for help on using Array sort()
 	 */
 	public handleORDER(order: any): InsightResult[] {
-		//sort the parsedQuery result based on the database key
+		//sort the parsedQuery result based on the database key (in ascending order)
 		this.parsedQuery.sort((a, b) => {
 			const valueA = a[order];
 			const valueB = b[order];
 
-			//if values are numbers, sort in ascending order
-			if (typeof valueA === "number" && typeof valueB === "number") {
-				return valueA - valueB;
-			} else if (typeof valueA === "string" && typeof valueB === "string") {
-				//sort by alphabetical order
-				return valueA.localeCompare(valueB);
-			} else {
-				//error handling for this function to work
-				throw new InsightError(`Cannot compare values of type ${typeof valueA} and ${typeof valueB}`);
-			}
+			// comparing both numbers and strings
+			if (valueA < valueB) return -1;
+			if (valueA > valueB) return 1;
+			//if values are equal
+			return 0;
 		});
 
+		return this.parsedQuery;
+	}
+
+	/**
+	 * Sorting with direction and multiple key handling
+	 *
+	 * Citation: based off of handleORDER code, which was written using the help of AI
+	 */
+	private handleSORT(sort: any): InsightResult[] {
+		const dir: string = sort.dir;
+		const keys: string[] = sort.keys;
+		this.parsedQuery.sort((a, b) => {
+			for (const key of keys) {
+				const valueA = a[key];
+				const valueB = b[key];
+
+				// comparing both numbers and strings
+				if (valueA < valueB) {
+					// if direction is descending, reverse the  order
+					if (dir === "DOWN") return 1;
+					return -1;
+				}
+				if (valueA > valueB) {
+					if (dir === "DOWN") return -1;
+					return 1;
+				}
+			}
+			//if all keys are equal
+			return 0;
+		});
 		return this.parsedQuery;
 	}
 }

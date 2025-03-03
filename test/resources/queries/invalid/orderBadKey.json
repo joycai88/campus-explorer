@@ -1,0 +1,20 @@
+{
+	"title": "order bad key",
+	"input": {
+		"WHERE": {},
+		"OPTIONS": {
+			"COLUMNS": [
+				"easy_dept",
+				"easy_id"
+			],
+			"ORDER": {
+				"dir": "UP",
+				"keys": [
+					"easy_title"
+				]
+			}
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

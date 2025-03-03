@@ -1,0 +1,18 @@
+{
+	"title": "empty order keys",
+	"input": {
+		"WHERE": {},
+		"OPTIONS": {
+			"COLUMNS": [
+				"easy_dept",
+				"easy_id"
+			],
+			"ORDER": {
+				"dir": "UP",
+				"keys": []
+			}
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

@@ -3,14 +3,15 @@ import {
 	InsightDatasetKind,
 	InsightError,
 	InsightResult,
-	ResultTooLargeError,
 	NotFoundError,
+	ResultTooLargeError,
 } from "../../src/controller/IInsightFacade";
 import InsightFacade from "../../src/controller/InsightFacade";
 import { clearDisk, getContentFromArchives, loadTestQuery } from "../TestUtil";
 
 import { expect, use } from "chai";
 import chaiAsPromised from "chai-as-promised";
+
 use(chaiAsPromised);
 
 export interface ITestQuery {
@@ -452,7 +453,8 @@ describe("InsightFacade", function () {
 		it("should be able to list dataset from new instance", async function () {
 			const facade2 = new InsightFacade();
 			const result = await facade2.listDatasets();
-			expect(result).to.deep.equal([
+			console.log(result);
+			expect(result).to.have.deep.members([
 				{
 					id: "test",
 					kind: InsightDatasetKind.Sections,
@@ -502,6 +504,7 @@ describe("InsightFacade", function () {
 			try {
 				result = await facade.performQuery(input);
 			} catch (err) {
+				//console.log(err);
 				if (!errorExpected) {
 					expect.fail(`performQuery threw unexpected error: ${err}`);
 				}
@@ -527,6 +530,7 @@ describe("InsightFacade", function () {
 			const loadDatasetPromises: Promise<string[]>[] = [
 				facade.addDataset("sections", sections, InsightDatasetKind.Sections),
 				facade.addDataset("easy", easy, InsightDatasetKind.Sections),
+				facade.addDataset("rooms", rooms, InsightDatasetKind.Rooms),
 			];
 
 			try {
@@ -603,10 +607,32 @@ describe("InsightFacade", function () {
 		it("[valid/andWithOneElement.json] and with one element", checkQuery);
 		it("[valid/orWithOneElement.json] or with one element", checkQuery);
 
-		//unit tests for SCOMP
-
 		//unit tests for NEGATION
 		it("[valid/nestedNots.json] nested nots", checkQuery);
+
+		//TESTS FOR C2 START HERE ========================================
+		//Query validation tests
+		it("[invalid/orderMissingDir.json] order missing dir", checkQuery);
+		it("[invalid/orderMissingKeys.json] order missing keys", checkQuery);
+		it("[invalid/invalidOrderDir.json] invalid order dir", checkQuery);
+		it("[invalid/emptyOrderKeys.json] empty order keys", checkQuery);
+		it("[invalid/orderBadKey.json], order bad key", checkQuery);
+		it("[invalid/invalidTransformationColumns.json] invalid transformation columns", checkQuery);
+		it("[invalid/duplicateApplyKey.json] duplicate apply key", checkQuery);
+		it("[invalid/badTransformationOp.json] bad transformation op", checkQuery);
+		it("[invalid/badApplyKey.json] bad apply key", checkQuery);
+		it("[invalid/nonNumericAvg.json] non numeric avg", checkQuery);
+		it("[invalid/emptyGroup.json] empty group", checkQuery);
+		it("[invalid/missingApply.json] missing apply", checkQuery);
+		it("[invalid/badTransformationType.json] bad transformation type", checkQuery);
+
+		//Group + Apply tests
+		it("[valid/groupApplySpecExample.json] group apply spec example", checkQuery);
+		it("[valid/applyTokenFirst.json] apply token first", checkQuery);
+		it("[valid/twoApplyTokens.json] two apply tokens", checkQuery);
+
+		//Rooms Queries
+		it("[valid/roomsQueryExample.json] rooms query example", checkQuery);
 	});
 
 	describe("handleOrder", function () {
@@ -668,5 +694,8 @@ describe("InsightFacade", function () {
 		});
 
 		it("[valid/uuidOrder.json] uuid order", checkQuery);
+		it("[valid/orderDirectionDown.json] order direction down", checkQuery);
+		it("[valid/orderDownMultipleKeys.json] order down multiple key", checkQuery);
+		it("[valid/orderUpMultipleKeys.json] order up multiple key", checkQuery);
 	});
 });
