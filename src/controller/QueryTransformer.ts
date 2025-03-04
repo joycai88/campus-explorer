@@ -44,12 +44,14 @@ export default class QueryTransformer {
 			const applyToken: string = Object.keys(applyRule)[0];
 			const key: string = applyRule[applyToken];
 
-			if (applyToken === "AVG") result = this.handleAVG(groups, key, name);
-			else if (applyToken === "MAX") result = this.handleMAX(groups, key, name);
-			else if (applyToken === "MIN") result = this.handleMIN(groups, key, name);
-			else if (applyToken === "SUM") result = this.handleSUM(groups, key, name);
-			// applyToken === "COUNT"
-			else result = this.handleCOUNT(groups, key, name);
+			if (this.columns.includes(name)) {
+				if (applyToken === "AVG") result = this.handleAVG(groups, key, name);
+				else if (applyToken === "MAX") result = this.handleMAX(groups, key, name);
+				else if (applyToken === "MIN") result = this.handleMIN(groups, key, name);
+				else if (applyToken === "SUM") result = this.handleSUM(groups, key, name);
+				// applyToken === "COUNT"
+				else result = this.handleCOUNT(groups, key, name);
+			}
 		}
 		return result;
 	}

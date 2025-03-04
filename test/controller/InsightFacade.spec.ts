@@ -632,9 +632,14 @@ describe("InsightFacade", function () {
 		it("[valid/twoApplyTokens.json] two apply tokens", checkQuery);
 
 		//Rooms Queries
+		it("[invalid/invalidMaxType.json] invalid max type", checkQuery);
+		it("[invalid/invalidApplyName.json] invalid apply name", checkQuery);
 		it("[valid/roomsQueryExample.json] rooms query example", checkQuery);
 		it("[valid/maxAndSumQuery.json] max and sum query", checkQuery);
 		it("[valid/maxAndSumAndAvgQuery.json] max and sum and avg query", checkQuery);
+		it("[valid/minMaxRooms.json] min max rooms", checkQuery);
+		it("[valid/doubleMax.json] double max", checkQuery);
+		it("[valid/notAllApplyKeysInColumns.json] not all apply keys in columns", checkQuery);
 	});
 
 	describe("handleOrder", function () {

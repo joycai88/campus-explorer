@@ -1,0 +1,71 @@
+{
+	"title": "not all apply keys in columns",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"IS": {
+						"rooms_shortname": "*E*"
+					}
+				},
+				{
+					"GT": {
+						"rooms_seats": 250
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"rooms_seats",
+				"maxSeats"
+			],
+			"ORDER": {
+				"dir": "DOWN",
+				"keys": [
+					"maxSeats"
+				]
+			}
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"rooms_seats"
+			],
+			"APPLY": [
+				{
+					"maxSeats": {
+						"MAX": "rooms_seats"
+					}
+				},
+				{
+					"maxLat": {
+						"MAX": "rooms_lat"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"rooms_seats": 375,
+			"maxSeats": 375
+		},
+		{
+			"rooms_seats": 350,
+			"maxSeats": 350
+		},
+		{
+			"rooms_seats": 325,
+			"maxSeats": 325
+		},
+		{
+			"rooms_seats": 265,
+			"maxSeats": 265
+		},
+		{
+			"rooms_seats": 257,
+			"maxSeats": 257
+		}
+	]
+}

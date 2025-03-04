@@ -1,0 +1,82 @@
+{
+	"title": "double max",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"IS": {
+						"rooms_shortname": "*O*"
+					}
+				},
+				{
+					"GT": {
+						"rooms_seats": 1
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"rooms_type",
+				"maxSeats",
+				"maxLat"
+			],
+			"ORDER": {
+				"dir": "DOWN",
+				"keys": [
+					"maxSeats"
+				]
+			}
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"rooms_type"
+			],
+			"APPLY": [
+				{
+					"maxSeats": {
+						"MAX": "rooms_seats"
+					}
+				},
+				{
+					"maxLat": {
+						"MAX": "rooms_lat"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"rooms_type": "Tiered Large Group",
+			"maxSeats": 503,
+			"maxLat": 49.26605
+		},
+		{
+			"rooms_type": "Open Design General Purpose",
+			"maxSeats": 442,
+			"maxLat": 49.27106
+		},
+		{
+			"rooms_type": "Case Style",
+			"maxSeats": 100,
+			"maxLat": 49.27106
+		},
+		{
+			"rooms_type": "Active Learning",
+			"maxSeats": 72,
+			"maxLat": 49.26048
+		},
+		{
+			"rooms_type": "Studio Lab",
+			"maxSeats": 72,
+			"maxLat": 49.26048
+		},
+		{
+			"rooms_type": "Small Group",
+			"maxSeats": 44,
+			"maxLat": 49.26958
+		}
+	]
+}
