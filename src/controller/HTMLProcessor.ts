@@ -233,7 +233,7 @@ export default class HTMLProcessor {
 
 			const number = this.extractCellTextByClass(row, "views-field-field-room-number");
 			const capacityText = this.extractCellTextByClass(row, "views-field-field-room-capacity");
-			const seats = Number(capacityText.trim().valueOf()) || 0;
+			const seats = Number(capacityText.trim().valueOf());
 			const furniture = this.extractCellTextByClass(row, "views-field-field-room-furniture");
 			const type = this.extractCellTextByClass(row, "views-field-field-room-type");
 			const href = this.findLinkHref(row, "views-field-nothing");
