@@ -154,7 +154,7 @@ export default class HTMLProcessor {
 		const shortname = this.extractCellTextByClass(row, "views-field-field-building-code");
 		const fullname = this.extractCellTextByClass(row, "views-field-title");
 		const address = this.extractCellTextByClass(row, "views-field-field-building-address");
-		const href = this.extractHrefFromRow(row);
+		const href = this.findLinkHref(row, "views-field-nothing");
 
 		return {
 			shortname,
@@ -162,17 +162,6 @@ export default class HTMLProcessor {
 			address,
 			href,
 		};
-	}
-
-	private extractHrefFromRow(row: any): string {
-		const moreInfoCell = this.findCellByClass(row, "views-field-nothing");
-
-		if (!moreInfoCell) {
-			return "";
-		}
-
-		const links = this.findElements(moreInfoCell, "a");
-		return links.length > 0 ? this.getAttributeValue(links[0], "href") || "" : "";
 	}
 
 	private async processBuilding(document: any, buildingInfo: any): Promise<Room[]> {
@@ -208,22 +197,24 @@ export default class HTMLProcessor {
 
 		for (const table of tables) {
 			const headers = this.findElements(table, "th");
-			for (const header of headers) {
-				const text = this.getTextContent(header).trim().toLowerCase();
-				if (text.includes("room") || text.includes("capacity") || text.includes("furniture")) {
-					return table;
-				}
-			}
+			// Check if all required headers are present
+			const requiredClasses = [
+				"views-field-field-room-number",
+				"views-field-field-room-capacity",
+				"views-field-field-room-furniture",
+				"views-field-field-room-type",
+				"views-field-nothing",
+			];
 
-			const cells = this.findElements(table, "td");
-			for (const cell of cells) {
-				const classValue = this.getAttributeValue(cell, "class") || "";
-				if (classValue.includes("views-field-field-room-")) {
-					return table;
-				}
+			// Check if all required headers exist in this table
+			const hasAllRequiredHeaders = requiredClasses.every((requiredClass) =>
+				headers.some((header) => this.hasClass(header, requiredClass))
+			);
+
+			if (hasAllRequiredHeaders) {
+				return table;
 			}
 		}
-
 		return null;
 	}
 
