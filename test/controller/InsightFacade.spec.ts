@@ -52,7 +52,7 @@ describe("InsightFacade", function () {
 		it("should reject with  an empty dataset id", async function () {
 			// Read the "Free Mutant Walkthrough" in the spec for tips on how to get started!
 			try {
-				await facade.addDataset("", sections, InsightDatasetKind.Sections);
+				await facade.addDataset("", rooms, InsightDatasetKind.Rooms);
 				expect.fail("Should have thrown!");
 			} catch (err) {
 				expect(err).to.be.an.instanceOf(InsightError);
@@ -61,7 +61,7 @@ describe("InsightFacade", function () {
 
 		it("should pass with valid id", async function () {
 			try {
-				const result = await facade.addDataset("1", sections, InsightDatasetKind.Sections);
+				const result = await facade.addDataset("1", rooms, InsightDatasetKind.Rooms);
 				expect(result).to.be.an("array").with.lengthOf(1);
 				expect(result).to.include("1");
 			} catch (err) {
@@ -71,10 +71,10 @@ describe("InsightFacade", function () {
 
 		it("should pass with multiple adds", async function () {
 			try {
-				const result = await facade.addDataset("1", sections, InsightDatasetKind.Sections);
+				const result = await facade.addDataset("1", rooms, InsightDatasetKind.Rooms);
 				expect(result).to.be.an("array").with.lengthOf(1);
 				expect(result).to.include("1");
-				const result2 = await facade.addDataset("2", sections, InsightDatasetKind.Sections);
+				const result2 = await facade.addDataset("2", rooms, InsightDatasetKind.Rooms);
 				expect(result2).to.include("1");
 				expect(result2).to.include("2");
 			} catch (err) {
@@ -84,8 +84,8 @@ describe("InsightFacade", function () {
 
 		it("should reject when adding dataset with duplicate id", async function () {
 			try {
-				await facade.addDataset("1", sections, InsightDatasetKind.Sections);
-				await facade.addDataset("1", sections, InsightDatasetKind.Sections);
+				await facade.addDataset("1", rooms, InsightDatasetKind.Rooms);
+				await facade.addDataset("1", rooms, InsightDatasetKind.Rooms);
 
 				expect.fail("Should have thrown error for duplicate id");
 			} catch (err) {
@@ -105,7 +105,7 @@ describe("InsightFacade", function () {
 
 		it("should reject id with underscore for add", async function () {
 			try {
-				await facade.addDataset("_1", sections, InsightDatasetKind.Sections);
+				await facade.addDataset("_1", rooms, InsightDatasetKind.Rooms);
 				expect.fail("Should have thrown error for invalid id");
 			} catch (err) {
 				expect(err).to.be.an.instanceOf(InsightError);
@@ -114,7 +114,7 @@ describe("InsightFacade", function () {
 
 		it("should reject id with only whitespace for add", async function () {
 			try {
-				await facade.addDataset(" ", sections, InsightDatasetKind.Sections);
+				await facade.addDataset(" ", rooms, InsightDatasetKind.Rooms);
 				expect.fail("Should have thrown error for invalid id");
 			} catch (err) {
 				expect(err).to.be.an.instanceOf(InsightError);
@@ -143,7 +143,7 @@ describe("InsightFacade", function () {
 		it("should reject when given invalid base64 string", async function () {
 			const invalidBase64 = "invalid_string";
 			try {
-				await facade.addDataset("1", invalidBase64, InsightDatasetKind.Sections);
+				await facade.addDataset("1", invalidBase64, InsightDatasetKind.Rooms);
 				expect.fail("Should have thrown an error for invalid base64.");
 			} catch (err) {
 				expect(err).to.be.an.instanceOf(InsightError);
@@ -297,6 +297,17 @@ describe("InsightFacade", function () {
 		it("should pass when passing in given test_rooms.zip", async function () {
 			try {
 				const test = await getContentFromArchives("test_rooms.zip");
+				const result = await facade.addDataset("1", test, InsightDatasetKind.Rooms);
+				expect(result).to.be.an("array");
+				expect(result).to.include("1");
+			} catch (err) {
+				expect.fail(`Should not have thrown, but threw ${err}`);
+			}
+		});
+
+		it("should pass with two room tables, one invalid one valid", async function () {
+			try {
+				const test = await getContentFromArchives("two_room_table.zip");
 				const result = await facade.addDataset("1", test, InsightDatasetKind.Rooms);
 				expect(result).to.be.an("array");
 				expect(result).to.include("1");
