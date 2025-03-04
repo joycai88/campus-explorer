@@ -140,7 +140,7 @@ export default class QueryTransformer {
 				sum += curr;
 			}
 			// round final result to two decimal places
-			this.finalResult[counter][name] = sum.toFixed(2);
+			this.finalResult[counter][name] = Number(sum.toFixed(2));
 			counter++;
 		});
 		return this.finalResult;
