@@ -633,6 +633,8 @@ describe("InsightFacade", function () {
 
 		//Rooms Queries
 		it("[valid/roomsQueryExample.json] rooms query example", checkQuery);
+		it("[valid/maxAndSumQuery.json] max and sum query", checkQuery);
+		it("[valid/maxAndSumAndAvgQuery.json] max and sum and avg query", checkQuery);
 	});
 
 	describe("handleOrder", function () {
