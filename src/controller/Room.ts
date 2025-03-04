@@ -26,14 +26,22 @@ export default class Room {
 		furniture: string,
 		href: string
 	) {
+		const latNum = Number(lat);
+		const lonNum = Number(lon);
+		const seatsNum = Number(seats);
+
+		if (isNaN(latNum)) throw new InsightError("lat must be a valid number");
+		if (isNaN(lonNum)) throw new InsightError("lon must be a valid number");
+		if (isNaN(seatsNum)) throw new InsightError("seats must be a valid number");
+
 		this.fullname = fullname;
 		this.shortname = shortname;
 		this.number = number;
 		this.name = name;
 		this.address = address;
-		this.lat = lat;
-		this.lon = lon;
-		this.seats = seats;
+		this.lat = latNum;
+		this.lon = lonNum;
+		this.seats = seatsNum;
 		this.type = type;
 		this.furniture = furniture;
 		this.href = href;
