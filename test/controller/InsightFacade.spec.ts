@@ -583,6 +583,77 @@ describe("InsightFacade", function () {
 		});
 	});
 
+	describe("Cache2", function () {
+		beforeEach(async function () {
+			await clearDisk();
+		});
+
+		it("Test 1: Instance 1 add, Instance 2 list, Instance 2 remove", async function () {
+			const facade1 = new InsightFacade();
+			await facade1.addDataset("test", testSections, InsightDatasetKind.Sections);
+			await facade1.addDataset("rooms", rooms, InsightDatasetKind.Rooms);
+
+			const facade2 = new InsightFacade();
+			const listResult = await facade2.listDatasets();
+			expect(listResult).to.have.deep.members([
+				{ id: "test", kind: InsightDatasetKind.Sections, numRows: 2 },
+				{ id: "rooms", kind: InsightDatasetKind.Rooms, numRows: 364 },
+			]);
+
+			const removeResult = await facade2.removeDataset("test");
+			expect(removeResult).to.be.a("string");
+		});
+
+		it("Test 2: Instance 1 add, Instance 2 remove, Instance 2 list", async function () {
+			const facade1 = new InsightFacade();
+			await facade1.addDataset("test", testSections, InsightDatasetKind.Sections);
+			await facade1.addDataset("rooms", rooms, InsightDatasetKind.Rooms);
+
+			const facade2 = new InsightFacade();
+			await facade2.removeDataset("test");
+
+			const listResult = await facade2.listDatasets();
+			expect(listResult).to.have.deep.members([{ id: "rooms", kind: InsightDatasetKind.Rooms, numRows: 364 }]);
+			expect(listResult).to.be.an("array").that.has.lengthOf(1);
+
+			const facade3 = new InsightFacade();
+			await facade3.removeDataset("rooms");
+			const listResult2 = await facade3.listDatasets();
+			expect(listResult2).to.be.empty;
+		});
+
+		it("Test 3: Multiple instances adding and removing datasets", async function () {
+			const facade1 = new InsightFacade();
+			await facade1.addDataset("test", testSections, InsightDatasetKind.Sections);
+
+			const facade2 = new InsightFacade();
+			await facade2.addDataset("rooms", rooms, InsightDatasetKind.Rooms);
+
+			const facade3 = new InsightFacade();
+			await facade3.addDataset("extra", testSections, InsightDatasetKind.Sections);
+
+			const facade4 = new InsightFacade();
+			await facade4.removeDataset("test");
+
+			const facade5 = new InsightFacade();
+			await facade5.addDataset("new", testSections, InsightDatasetKind.Sections);
+			await facade5.removeDataset("new");
+
+			const listResult = await facade5.listDatasets();
+			expect(listResult).to.have.deep.members([
+				{ id: "rooms", kind: InsightDatasetKind.Rooms, numRows: 364 },
+				{ id: "extra", kind: InsightDatasetKind.Sections, numRows: 2 },
+			]);
+
+			await clearDisk();
+			const facade6 = new InsightFacade(); // Reset instance after clearing
+
+			await facade6.addDataset("final", testSections, InsightDatasetKind.Sections);
+			const finalListResult = await facade6.listDatasets();
+			expect(finalListResult).to.have.deep.members([{ id: "final", kind: InsightDatasetKind.Sections, numRows: 2 }]);
+		});
+	});
+
 	describe("Cache", function () {
 		beforeEach(async function () {
 			await clearDisk();
