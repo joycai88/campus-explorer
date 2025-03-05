@@ -24,7 +24,7 @@ export default class DatasetProcessor {
 				const cachedData = await fs.readFile(cacheFilePath, "utf-8");
 				return Dataset.fromJSON(JSON.parse(cachedData));
 			} catch (err) {
-				console.log(`Failed to read cache file for dataset ${id}: ${err}`);
+				console.warn(`Failed to read cache file for dataset ${id}: ${err}`);
 				return null;
 			}
 		}
@@ -36,7 +36,7 @@ export default class DatasetProcessor {
 		try {
 			await fs.writeFile(cacheFilePath, JSON.stringify(dataset.toJSON()));
 		} catch (err) {
-			console.log(`Failed to save dataset ${id} to cache: ${err}`);
+			console.warn(`Failed to save dataset ${id} to cache: ${err}`);
 			throw new InsightError(`Failed to cache dataset ${id}`);
 		}
 	}
@@ -47,7 +47,7 @@ export default class DatasetProcessor {
 			try {
 				await fs.remove(cacheFilePath);
 			} catch (err) {
-				console.log(`Failed to remove cache file for dataset ${id}: ${err}`);
+				console.warn(`Failed to remove cache file for dataset ${id}: ${err}`);
 				throw new InsightError(`Failed to remove dataset ${id} from cache`);
 			}
 		}

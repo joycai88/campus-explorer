@@ -228,7 +228,6 @@ describe("InsightFacade", function () {
 				await facade.addDataset("1", invalid, InsightDatasetKind.Rooms);
 				expect.fail("Should have thrown an error.");
 			} catch (err) {
-				console.log(err);
 				expect(err).to.be.an.instanceOf(InsightError);
 			}
 		});
@@ -239,7 +238,6 @@ describe("InsightFacade", function () {
 				await facade.addDataset("1", empty, InsightDatasetKind.Rooms);
 				expect.fail("Should have thrown an error.");
 			} catch (err) {
-				console.log(err);
 				expect(err).to.be.an.instanceOf(InsightError);
 			}
 		});
@@ -268,7 +266,6 @@ describe("InsightFacade", function () {
 				await facade.addDataset("1", test, InsightDatasetKind.Rooms);
 				expect.fail("Should have thrown an error.");
 			} catch (err) {
-				console.log(err);
 				expect(err).to.be.an.instanceOf(InsightError);
 			}
 		});
@@ -279,7 +276,6 @@ describe("InsightFacade", function () {
 				await facade.addDataset("1", test, InsightDatasetKind.Rooms);
 				expect.fail("Should have thrown an error.");
 			} catch (err) {
-				console.log(err);
 				expect(err).to.be.an.instanceOf(InsightError);
 			}
 		});
@@ -455,7 +451,6 @@ describe("InsightFacade", function () {
 				await facade.addDataset(id, test, kind);
 
 				const result = await facade.listDatasets();
-				console.log(result);
 
 				expect(result).to.be.an("array").that.has.lengthOf(1);
 				expect(result[0]).to.deep.equal({
@@ -477,7 +472,6 @@ describe("InsightFacade", function () {
 				await facade.addDataset(id, test, kind);
 
 				const result = await facade.listDatasets();
-				console.log(result);
 
 				expect(result).to.be.an("array").that.has.lengthOf(1);
 				expect(result[0]).to.deep.equal({
@@ -499,7 +493,6 @@ describe("InsightFacade", function () {
 				await facade.addDataset(id, test, kind);
 
 				const result = await facade.listDatasets();
-				console.log(result);
 
 				expect(result).to.be.an("array").that.has.lengthOf(1);
 				expect(result[0]).to.deep.equal({
@@ -521,7 +514,6 @@ describe("InsightFacade", function () {
 				await facade.addDataset(id, crazy, kind);
 
 				const result = await facade.listDatasets();
-				console.log(result);
 
 				expect(result).to.be.an("array").that.has.lengthOf(1);
 				expect(result[0]).to.deep.equal({
@@ -665,7 +657,6 @@ describe("InsightFacade", function () {
 		it("should be able to list dataset from new instance", async function () {
 			const facade2 = new InsightFacade();
 			const result = await facade2.listDatasets();
-			console.log(result);
 			expect(result).to.have.deep.members([
 				{
 					id: "test",
@@ -716,7 +707,6 @@ describe("InsightFacade", function () {
 			try {
 				result = await facade.performQuery(input);
 			} catch (err) {
-				//console.log(err);
 				if (!errorExpected) {
 					expect.fail(`performQuery threw unexpected error: ${err}`);
 				}
