@@ -28,6 +28,15 @@ export default class QueryTransformer {
 				"The result is too big. Only queries with a maximum " + "of 5000 results are supported."
 			);
 		}
+
+		//order results
+		if (Object.keys(query.OPTIONS).length === 2) {
+			if (typeof query.OPTIONS.ORDER === "object") {
+				this.handleSORT(query.OPTIONS.ORDER);
+			} else {
+				this.handleORDER(query.OPTIONS.ORDER);
+			}
+		}
 		return this.finalResult;
 	}
 
@@ -205,5 +214,56 @@ export default class QueryTransformer {
 			}
 		}
 		return groupedRes;
+	}
+
+	/**
+	 * Parse the ORDER block of the query
+	 *
+	 * Citation: ChatGPT for help on using Array sort()
+	 */
+	public handleORDER(order: any): InsightResult[] {
+		//sort the final result based on the database key (in ascending order)
+		this.finalResult.sort((a, b) => {
+			const valueA = a[order];
+			const valueB = b[order];
+
+			// comparing both numbers and strings
+			if (valueA < valueB) return -1;
+			if (valueA > valueB) return 1;
+			//if values are equal
+			return 0;
+		});
+
+		return this.finalResult;
+	}
+
+	/**
+	 * Sorting with direction and multiple key handling
+	 *
+	 * Citation: based off of handleORDER code, which was written using the help of AI
+	 */
+	private handleSORT(sort: any): InsightResult[] {
+		const dir: string = sort.dir;
+		const keys: string[] = sort.keys;
+		this.finalResult.sort((a, b) => {
+			for (const key of keys) {
+				const valueA = a[key];
+				const valueB = b[key];
+
+				// comparing both numbers and strings
+				if (valueA < valueB) {
+					// if direction is descending, reverse the  order
+					if (dir === "DOWN") return 1;
+					return -1;
+				}
+				if (valueA > valueB) {
+					if (dir === "DOWN") return -1;
+					return 1;
+				}
+			}
+			//if all keys are equal
+			return 0;
+		});
+		return this.finalResult;
 	}
 }

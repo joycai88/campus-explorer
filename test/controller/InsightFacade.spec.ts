@@ -778,9 +778,9 @@ describe("InsightFacade", function () {
 		it("[valid/roomsQueryExample.json] rooms query example", checkQuery);
 		it("[valid/maxAndSumQuery.json] max and sum query", checkQuery);
 		it("[valid/maxAndSumAndAvgQuery.json] max and sum and avg query", checkQuery);
+		it("[valid/notAllApplyKeysInColumns.json] not all apply keys in columns", checkQuery);
 		it("[valid/minMaxRooms.json] min max rooms", checkQuery);
 		it("[valid/doubleMax.json] double max", checkQuery);
-		it("[valid/notAllApplyKeysInColumns.json] not all apply keys in columns", checkQuery);
 	});
 
 	describe("handleOrder", function () {
@@ -828,6 +828,7 @@ describe("InsightFacade", function () {
 			const loadDatasetPromises: Promise<string[]>[] = [
 				facade.addDataset("sections", sections, InsightDatasetKind.Sections),
 				facade.addDataset("easy", easy, InsightDatasetKind.Sections),
+				facade.addDataset("rooms", rooms, InsightDatasetKind.Rooms),
 			];
 
 			try {
@@ -845,5 +846,8 @@ describe("InsightFacade", function () {
 		it("[valid/orderDirectionDown.json] order direction down", checkQuery);
 		it("[valid/orderDownMultipleKeys.json] order down multiple key", checkQuery);
 		it("[valid/orderUpMultipleKeys.json] order up multiple key", checkQuery);
+		it("[valid/notAllApplyKeysInColumns.json] not all apply keys in columns", checkQuery);
+		it("[valid/minMaxRooms.json] min max rooms", checkQuery);
+		it("[valid/doubleMax.json] double max", checkQuery);
 	});
 });
