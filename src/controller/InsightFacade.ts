@@ -21,7 +21,6 @@ import QueryTransformer from "./QueryTransformer";
  *
  */
 
-
 export default class InsightFacade implements IInsightFacade {
 	private datasetProcessor: DatasetProcessor;
 	public datasets: string[];
