@@ -43,7 +43,7 @@ export default class HTMLProcessor {
 
 			// Check if all required headers are present
 			const requiredClasses = [
-				"views-field-field-building-image",
+				// "views-field-field-building-image",
 				"views-field-field-building-code",
 				"views-field-title",
 				"views-field-field-building-address",

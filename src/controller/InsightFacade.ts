@@ -43,28 +43,44 @@ export default class InsightFacade implements IInsightFacade {
 	private async syncCache(): Promise<void> {
 		try {
 			await fs.ensureDir(this.dataDir);
-
 			const files = await fs.readdir(this.dataDir);
 
-			// Process all files concurrently
-			await Promise.all(
-				files.map(async (file) => {
-					if (file.endsWith(".txt")) {
-						const id = file.replace(".txt", "");
-						try {
-							const dataset = await this.datasetProcessor.loadFromCache(id);
-							if (dataset) {
+			// Use a Set to ensure unique dataset IDs
+			const loadedDatasets = new Set<string>();
+
+			const loadPromises = files
+				.filter((file) => file.endsWith(".txt"))
+				.map(async (file) => {
+					const id = file.replace(".txt", "");
+					try {
+						const dataset = await this.datasetProcessor.loadFromCache(id);
+						if (dataset) {
+							// Prevent duplicate additions
+							if (!loadedDatasets.has(id)) {
 								this.dataMap.set(id, dataset);
-								this.datasets.push(id);
+								loadedDatasets.add(id);
 							}
-						} catch (err) {
-							console.error(`Failed to load dataset ${id} from cache: ${err}`);
+						}
+					} catch (err) {
+						// Log and potentially remove corrupted cache files
+						console.error(`Failed to load dataset ${id} from cache: ${err}`);
+						try {
+							await this.datasetProcessor.removeFromCache(id);
+						} catch (removeErr) {
+							console.error(`Failed to remove corrupted cache file ${id}: ${removeErr}`);
 						}
 					}
-				})
-			);
+				});
+
+			await Promise.all(loadPromises);
+
+			// Rebuild datasets array to ensure consistency
+			this.datasets = Array.from(this.dataMap.keys());
 		} catch (err) {
-			console.error(`Failed to synchronize cache: ${err}`);
+			console.error(`Critical cache synchronization failure: ${err}`);
+			// Optionally, you might want to reset the state or throw an error
+			this.dataMap.clear();
+			this.datasets = [];
 		}
 	}
 
@@ -99,11 +115,10 @@ export default class InsightFacade implements IInsightFacade {
 		if (!this.dataMap.has(id)) {
 			throw new NotFoundError("Dataset not found");
 		}
+		await this.datasetProcessor.removeFromCache(id);
 
 		this.dataMap.delete(id);
-		this.datasets = this.datasets.filter((datasetId) => datasetId !== id);
-
-		await this.datasetProcessor.removeFromCache(id);
+		this.datasets = Array.from(this.dataMap.keys());
 
 		return id;
 	}
