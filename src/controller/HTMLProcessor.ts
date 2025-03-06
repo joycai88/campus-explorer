@@ -43,7 +43,6 @@ export default class HTMLProcessor {
 
 			// Check if all required headers are present
 			const requiredClasses = [
-				// "views-field-field-building-image",
 				"views-field-field-building-code",
 				"views-field-title",
 				"views-field-field-building-address",
@@ -230,7 +229,7 @@ export default class HTMLProcessor {
 			const href = this.findLinkHref(row, "views-field-nothing");
 
 			const name = buildingInfo.shortname + "_" + number;
-			const room = new Room(
+			return new Room(
 				buildingInfo.fullname,
 				buildingInfo.shortname,
 				number,
@@ -243,8 +242,6 @@ export default class HTMLProcessor {
 				furniture,
 				href
 			);
-			// console.log(room);
-			return room;
 		} catch (err) {
 			console.warn("Skipped due to missing field:", buildingInfo.shortname, err);
 			return null;

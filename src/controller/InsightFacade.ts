@@ -20,6 +20,7 @@ import QueryTransformer from "./QueryTransformer";
  * Method documentation is in IInsightFacade
  *
  */
+
 export default class InsightFacade implements IInsightFacade {
 	private datasetProcessor: DatasetProcessor;
 	public datasets: string[];
@@ -40,12 +41,12 @@ export default class InsightFacade implements IInsightFacade {
 		});
 	}
 
+	// CITATION: Used ChatGPT for syncCache()
 	private async syncCache(): Promise<void> {
 		try {
 			await fs.ensureDir(this.dataDir);
 			const files = await fs.readdir(this.dataDir);
 
-			// Use a Set to ensure unique dataset IDs
 			const loadedDatasets = new Set<string>();
 
 			const loadPromises = files
@@ -62,7 +63,6 @@ export default class InsightFacade implements IInsightFacade {
 							}
 						}
 					} catch (err) {
-						// Log and potentially remove corrupted cache files
 						console.error(`Failed to load dataset ${id} from cache: ${err}`);
 						try {
 							await this.datasetProcessor.removeFromCache(id);
@@ -74,11 +74,9 @@ export default class InsightFacade implements IInsightFacade {
 
 			await Promise.all(loadPromises);
 
-			// Rebuild datasets array to ensure consistency
 			this.datasets = Array.from(this.dataMap.keys());
 		} catch (err) {
 			console.error(`Critical cache synchronization failure: ${err}`);
-			// Optionally, you might want to reset the state or throw an error
 			this.dataMap.clear();
 			this.datasets = [];
 		}
@@ -94,7 +92,6 @@ export default class InsightFacade implements IInsightFacade {
 
 		try {
 			const dataset = await this.datasetProcessor.processDataset(id, content, kind);
-			// console.log(dataset);
 			this.dataMap.set(id, dataset);
 			this.datasets = Array.from(this.dataMap.keys());
 

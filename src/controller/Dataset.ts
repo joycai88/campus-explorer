@@ -25,7 +25,6 @@ export class Dataset {
 
 	public static fromJSON(json: any): Dataset {
 		const { id, kind, items } = json;
-		// console.log(json);
 		if (!id || !kind || !items) {
 			throw new InsightError("Invalid JSON structure for Dataset");
 		}
