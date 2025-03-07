@@ -337,7 +337,7 @@ export default class QueryEngine {
 	/**
 	 * Ending work such as filtering columns & ordering
 	 */
-	public finish(): InsightResult[] {
+	private finish(): InsightResult[] {
 		//only filter the columns if there is no transformation
 		//otherwise QueryTransformer will handle the columns
 		if (this.doTransform) return this.parsedQuery;
@@ -378,7 +378,7 @@ export default class QueryEngine {
 	/**
 	 * Parse the COLUMNS block of the query
 	 */
-	public handleCOLUMNS(columns: any): string[] {
+	private handleCOLUMNS(columns: any): string[] {
 		this.columns = columns;
 
 		//get all columns of interest from the dataset

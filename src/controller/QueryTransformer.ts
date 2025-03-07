@@ -45,7 +45,7 @@ export default class QueryTransformer {
 	 * @param groups is the grouped results after processing from GROUP
 	 * @param apply is the APPLY query string - a list of objects
 	 */
-	public handleAPPLY(groups: Map<string, InsightResult[]>, apply: any[]): InsightResult[] {
+	private handleAPPLY(groups: Map<string, InsightResult[]>, apply: any[]): InsightResult[] {
 		let result: InsightResult[] = [];
 		for (const a of apply) {
 			const name: string = Object.keys(a)[0];
@@ -72,7 +72,7 @@ export default class QueryTransformer {
 	 * @param name the name of the avg calculation
 	 * Finds the average of op for each group
 	 */
-	public handleAVG(groups: Map<string, InsightResult[]>, op: string, name: string): InsightResult[] {
+	private handleAVG(groups: Map<string, InsightResult[]>, op: string, name: string): InsightResult[] {
 		let counter = 0;
 		groups.forEach((value) => {
 			let total = new Decimal(0);
@@ -95,7 +95,7 @@ export default class QueryTransformer {
 	 * @param name the name of the avg calculation
 	 * Finds the max value of op in each group
 	 */
-	public handleMAX(groups: Map<string, InsightResult[]>, op: string, name: string): InsightResult[] {
+	private handleMAX(groups: Map<string, InsightResult[]>, op: string, name: string): InsightResult[] {
 		let counter = 0;
 		groups.forEach((value) => {
 			let max = -Infinity;
@@ -118,7 +118,7 @@ export default class QueryTransformer {
 	 * @param name the name of the avg calculation
 	 * Finds the smallest value of op in each group
 	 */
-	public handleMIN(groups: Map<string, InsightResult[]>, op: string, name: string): InsightResult[] {
+	private handleMIN(groups: Map<string, InsightResult[]>, op: string, name: string): InsightResult[] {
 		let counter = 0;
 		groups.forEach((value) => {
 			let min = Infinity;
@@ -141,7 +141,7 @@ export default class QueryTransformer {
 	 * @param name the name of the avg calculation
 	 * Finds the sum of values of op in each group
 	 */
-	public handleSUM(groups: Map<string, InsightResult[]>, op: string, name: string): InsightResult[] {
+	private handleSUM(groups: Map<string, InsightResult[]>, op: string, name: string): InsightResult[] {
 		let counter = 0;
 		groups.forEach((value) => {
 			let sum = 0;
@@ -164,7 +164,7 @@ export default class QueryTransformer {
 	 * @param name the name of the avg calculation
 	 * Finds the number of unique op values in each group
 	 */
-	public handleCOUNT(groups: Map<string, InsightResult[]>, op: string, name: string): InsightResult[] {
+	private handleCOUNT(groups: Map<string, InsightResult[]>, op: string, name: string): InsightResult[] {
 		let counter = 0;
 		groups.forEach((value) => {
 			let unique = 0;
@@ -189,7 +189,7 @@ export default class QueryTransformer {
 	 * @param group are the values that results need to be grouped by
 	 * Handles GROUP section of the query
 	 */
-	public handleGROUP(result: InsightResult[], group: string[]): Map<string, InsightResult[]> {
+	private handleGROUP(result: InsightResult[], group: string[]): Map<string, InsightResult[]> {
 		const groupedRes = new Map<string, InsightResult[]>();
 
 		for (const res of result) {
@@ -221,7 +221,7 @@ export default class QueryTransformer {
 	 *
 	 * Citation: ChatGPT for help on using Array sort()
 	 */
-	public handleORDER(order: any): InsightResult[] {
+	private handleORDER(order: any): InsightResult[] {
 		//sort the final result based on the database key (in ascending order)
 		this.finalResult.sort((a, b) => {
 			const valueA = a[order];
