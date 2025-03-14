@@ -3,17 +3,20 @@ import { StatusCodes } from "http-status-codes";
 import { Log } from "@ubccpsc310/project-support";
 import * as http from "http";
 import cors from "cors";
+import InsightFacade from "../controller/InsightFacade";
+import { InsightDatasetKind } from "../controller/IInsightFacade";
 
 export default class Server {
 	private readonly port: number;
 	private express: Application;
 	private server: http.Server | undefined;
+	private static insightFacade: InsightFacade;
 
 	constructor(port: number) {
 		Log.info(`Server::<init>( ${port} )`);
 		this.port = port;
 		this.express = express();
-
+		Server.insightFacade = new InsightFacade();
 		this.registerMiddleware();
 		this.registerRoutes();
 
@@ -89,6 +92,10 @@ export default class Server {
 		this.express.get("/echo/:msg", Server.echo);
 
 		// TODO: your other endpoints should go here
+		this.express.put("/dataset/:id/:kind", Server.addDataset);
+		this.express.delete("/dataset/:id", Server.removeDataset);
+		this.express.post("/query", Server.performQuery);
+		this.express.get("/datasets", Server.listDatasets);
 	}
 
 	// The next two methods handle the echo service.
@@ -109,6 +116,65 @@ export default class Server {
 			return `${msg}...${msg}`;
 		} else {
 			return "Message not provided";
+		}
+	}
+
+	// Endpoints:
+
+	private static async addDataset(req: Request, res: Response): Promise<void> {
+		try {
+			Log.info(`Server::addDataset(..) - params: ${JSON.stringify(req.params)}`);
+			const id = req.params.id;
+			const kindString = req.params.kind;
+			let kind: InsightDatasetKind;
+			if (kindString === "sections") {
+				kind = InsightDatasetKind.Sections;
+			} else if (kindString === "rooms") {
+				kind = InsightDatasetKind.Rooms;
+			} else {
+				throw new Error(`Invalid dataset kind: ${req.params.kind}. Must be either 'rooms' or 'sections'.`);
+			}
+
+			const content = Buffer.from(req.body).toString("base64");
+
+			const arr = await Server.insightFacade.addDataset(id, content, kind);
+			res.status(StatusCodes.OK).json({ result: arr });
+		} catch (err) {
+			res.status(StatusCodes.BAD_REQUEST).json({ error: err });
+		}
+	}
+
+	private static async removeDataset(req: Request, res: Response): Promise<void> {
+		try {
+			Log.info(`Server::removeDataset(..) - params: ${JSON.stringify(req.params)}`);
+			const id = req.params.id;
+
+			const str = await Server.insightFacade.removeDataset(id);
+			res.status(StatusCodes.OK).json({ result: str });
+		} catch (err) {
+			res.status(StatusCodes.BAD_REQUEST).json({ error: err });
+		}
+	}
+
+	private static async performQuery(req: Request, res: Response): Promise<void> {
+		try {
+			Log.info(`Server::performQuery(..) - body: ${JSON.stringify(req.body)}`);
+			const query = req.body;
+
+			const arr = await Server.insightFacade.performQuery(query);
+			res.status(StatusCodes.OK).json({ result: arr });
+		} catch (err) {
+			res.status(StatusCodes.BAD_REQUEST).json({ error: err });
+		}
+	}
+
+	private static async listDatasets(req: Request, res: Response): Promise<void> {
+		try {
+			Log.info("Server::listDatasets(..)");
+			const arr = await Server.insightFacade.listDatasets();
+			res.status(StatusCodes.OK).json({ result: arr });
+		} catch (err) {
+			res.status(StatusCodes.BAD_REQUEST).json({ error: err });
 		}
 	}
 }
