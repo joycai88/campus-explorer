@@ -43,7 +43,7 @@ describe("Facade C3", function () {
 		it("should add a courses dataset", async function () {
 			const SERVER_URL = `http://localhost:${PORT}`;
 			const ENDPOINT_URL = "/dataset/courses/sections";
-			const ZIP_FILE_DATA = fs.readFileSync("./test/resources/archives/simplest.zip");
+			const ZIP_FILE_DATA = await fs.promises.readFile("./test/resources/archives/simplest.zip");
 
 			try {
 				const res = await request(SERVER_URL)
@@ -62,7 +62,7 @@ describe("Facade C3", function () {
 		it("should add a rooms dataset", async function () {
 			const SERVER_URL = `http://localhost:${PORT}`;
 			const ENDPOINT_URL = "/dataset/test/rooms";
-			const ZIP_FILE_DATA = fs.readFileSync("./test/resources/archives/campus.zip");
+			const ZIP_FILE_DATA = await fs.promises.readFile("./test/resources/archives/campus.zip");
 
 			try {
 				const res = await request(SERVER_URL)
