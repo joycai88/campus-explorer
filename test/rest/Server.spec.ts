@@ -40,6 +40,23 @@ describe("Facade C3", function () {
 	});
 
 	describe("PUT endpoints", function () {
+		it("should fail to add an improper formatted PUT request (incorrect kind)", async function () {
+			const SERVER_URL = `http://localhost:${PORT}`;
+			const ENDPOINT_URL = "/dataset/courses/rooms";
+			const ZIP_FILE_DATA = await fs.promises.readFile("./test/resources/archives/simplest.zip");
+
+			try {
+				const res = await request(SERVER_URL)
+					.put(ENDPOINT_URL)
+					.send(ZIP_FILE_DATA)
+					.set("Content-Type", "application/x-zip-compressed");
+				expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
+			} catch (err) {
+				Log.error(err);
+				expect.fail();
+			}
+		});
+
 		it("should add a courses dataset", async function () {
 			const SERVER_URL = `http://localhost:${PORT}`;
 			const ENDPOINT_URL = "/dataset/courses/sections";
@@ -80,6 +97,23 @@ describe("Facade C3", function () {
 	});
 
 	describe("POST endpoints", function () {
+		it("should fail to query if invalid", async function () {
+			const SERVER_URL = `http://localhost:${PORT}`;
+			const ENDPOINT_URL = "/query";
+			const QUERY_BODY = "not a proper json string";
+
+			try {
+				const res = await request(SERVER_URL)
+					.post(ENDPOINT_URL)
+					.send(QUERY_BODY)
+					.set("Content-Type", "application/json");
+				expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
+			} catch (err) {
+				Log.error(err);
+				expect.fail();
+			}
+		});
+
 		it("should query the courses dataset", async function () {
 			const SERVER_URL = `http://localhost:${PORT}`;
 			const ENDPOINT_URL = "/query";
@@ -234,6 +268,19 @@ describe("Facade C3", function () {
 				expect(res.status).to.equal(StatusCodes.OK);
 				expect(res.body.result).to.be.a("string");
 				expect(res.body.result).to.equal("test");
+			} catch (err) {
+				Log.error(err);
+				expect.fail();
+			}
+		});
+
+		it("should fail to delete nonexistent rooms dataset", async function () {
+			const SERVER_URL = `http://localhost:${PORT}`;
+			const ENDPOINT_URL = "/dataset/none";
+
+			try {
+				const res = await request(SERVER_URL).delete(ENDPOINT_URL);
+				expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
 			} catch (err) {
 				Log.error(err);
 				expect.fail();
