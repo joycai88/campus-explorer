@@ -280,7 +280,7 @@ describe("Facade C3", function () {
 
 			try {
 				const res = await request(SERVER_URL).delete(ENDPOINT_URL);
-				expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
+				expect(res.status).to.equal(StatusCodes.NOT_FOUND);
 			} catch (err) {
 				Log.error(err);
 				expect.fail();
