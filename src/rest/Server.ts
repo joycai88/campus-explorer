@@ -4,7 +4,7 @@ import { Log } from "@ubccpsc310/project-support";
 import * as http from "http";
 import cors from "cors";
 import InsightFacade from "../controller/InsightFacade";
-import { InsightDatasetKind } from "../controller/IInsightFacade";
+import { InsightDatasetKind, NotFoundError } from "../controller/IInsightFacade";
 
 export default class Server {
 	private readonly port: number;
@@ -152,7 +152,11 @@ export default class Server {
 			const str = await Server.insightFacade.removeDataset(id);
 			res.status(StatusCodes.OK).json({ result: str });
 		} catch (err) {
-			res.status(StatusCodes.BAD_REQUEST).json({ error: err });
+			if (err instanceof NotFoundError) {
+				res.status(StatusCodes.NOT_FOUND).json({ error: err });
+			} else {
+				res.status(StatusCodes.BAD_REQUEST).json({ error: err });
+			}
 		}
 	}
 
