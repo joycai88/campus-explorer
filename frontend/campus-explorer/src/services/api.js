@@ -9,7 +9,7 @@ const api = {
 		let config = {
 			method: 'put',
 			maxBodyLength: Infinity,
-			url: `${BASE_URL}/${id}/${kind}`,
+			url: `${BASE_URL}/dataset/${id}/${kind}`,
 			headers: {
 				'Content-Type': 'application/octet-stream'
 			},
@@ -43,7 +43,7 @@ const api = {
 		let config = {
 			method: 'delete',
 			maxBodyLength: Infinity,
-			url: 'http://localhost:4321/dataset/room'
+			url: `http://localhost:4321/dataset/${id}`
 		};
 
 		try {
