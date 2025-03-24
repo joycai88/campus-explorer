@@ -122,6 +122,7 @@ export default class Server {
 	// Endpoints:
 
 	private static async addDataset(req: Request, res: Response): Promise<void> {
+		Server.checkInsightFacade();
 		try {
 			Log.info(`Server::addDataset(..) - params: ${JSON.stringify(req.params)}`);
 			const id = req.params.id;
@@ -145,6 +146,7 @@ export default class Server {
 	}
 
 	private static async removeDataset(req: Request, res: Response): Promise<void> {
+		Server.checkInsightFacade();
 		try {
 			Log.info(`Server::removeDataset(..) - params: ${JSON.stringify(req.params)}`);
 			const id = req.params.id;
@@ -161,6 +163,7 @@ export default class Server {
 	}
 
 	private static async performQuery(req: Request, res: Response): Promise<void> {
+		Server.checkInsightFacade();
 		try {
 			Log.info(`Server::performQuery(..) - body: ${JSON.stringify(req.body)}`);
 			const query = req.body;
@@ -173,12 +176,19 @@ export default class Server {
 	}
 
 	private static async listDatasets(req: Request, res: Response): Promise<void> {
+		Server.checkInsightFacade();
 		try {
 			Log.info("Server::listDatasets(..)");
 			const arr = await Server.insightFacade.listDatasets();
 			res.status(StatusCodes.OK).json({ result: arr });
 		} catch (err) {
-			res.status(StatusCodes.BAD_REQUEST).json({ error: err });
+			Log.info(`Unexpected listDataset failure: ${err}`);
+		}
+	}
+
+	private static checkInsightFacade(): void {
+		if (Server.insightFacade === undefined || Server.insightFacade === null) {
+			Server.insightFacade = new InsightFacade();
 		}
 	}
 }
