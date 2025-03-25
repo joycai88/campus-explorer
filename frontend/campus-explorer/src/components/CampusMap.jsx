@@ -1,6 +1,5 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, { useState, useEffect } from 'react';
 import {APIProvider, Map, AdvancedMarker, InfoWindow, Pin} from '@vis.gl/react-google-maps';
-import api from "../services/api";
 
 const containerStyle = {
 	width: '100%',
@@ -14,15 +13,12 @@ const center = {
 
 const apiKey = "REMOVED";
 
-function CampusMap() {
+function CampusMap({ datasets, buildingsResponse }) {
 	const [buildings, setBuildings] = useState([]);
 	const [selectedBuilding, setSelectedBuilding] = useState(null);
-	const [isLoaded, setIsLoaded] = useState(false);
 
-	const fetchBuildings = useCallback(async () => {
-		try {
-			const datasets = await api.listDatasets();
-
+	useEffect(() => {
+		if (datasets.length > 0 && buildingsResponse.length > 0) {
 			const roomDataset = datasets.find(
 				(dataset) => dataset.kind === 'rooms'
 			);
@@ -33,24 +29,6 @@ function CampusMap() {
 			}
 
 			const datasetId = roomDataset.id;
-			const buildingsResponse = await api.performQuery(
-				JSON.stringify({
-					WHERE: {},
-					OPTIONS: {
-						COLUMNS: [
-							`${datasetId}_shortname`,
-							`${datasetId}_fullname`,
-							`${datasetId}_address`,
-							`${datasetId}_seats`,
-							`${datasetId}_number`,
-							`${datasetId}_lat`,
-							`${datasetId}_lon`,
-						],
-					},
-				})
-			);
-
-			// console.log(buildingsResponse);
 
 			const uniqueBuildings = [];
 			const seenBuildings = new Set();
@@ -77,17 +55,8 @@ function CampusMap() {
 			});
 
 			setBuildings(uniqueBuildings);
-		} catch (error) {
-			console.error('Error fetching building data:', error);
 		}
-	}, []);
-
-
-	useEffect(() => {
-		// Initial fetch when component mounts
-		fetchBuildings();
-		setIsLoaded(true);
-	}, [fetchBuildings]);
+	}, [datasets, buildingsResponse]);
 
 	const handleMarkerClick = (building) => {
 		setSelectedBuilding(building);
@@ -97,34 +66,24 @@ function CampusMap() {
 		setSelectedBuilding(null);
 	};
 
-	const handleRefreshMap = () => {
-		fetchBuildings();
-	};
-
 	return (
 		<div className="campus-map-container">
-			<button onClick={handleRefreshMap} className="refresh-button">
-				Refresh Map
-			</button>
-
-			<APIProvider apiKey={apiKey} onLoad={() => setIsLoaded(true)}>
+			<APIProvider apiKey={apiKey}>
 				<Map
 					mapId={'DEMO_MAP_ID'}
 					defaultZoom={15}
 					defaultCenter={center}
 					style={containerStyle}
 				>
-					{isLoaded &&
-						buildings.map((building) => (
-							<AdvancedMarker
-								key={building.id}
-								position={building.position}
-								title={building.fullname}
-								onClick={() => handleMarkerClick(building)}>
-								<Pin background={'#b591d0'} glyphColor={'#000'} borderColor={'#000'} />
-							</AdvancedMarker>
-
-				))}
+					{buildings.map((building) => (
+						<AdvancedMarker
+							key={building.id}
+							position={building.position}
+							title={building.fullname}
+							onClick={() => handleMarkerClick(building)}>
+							<Pin background={'#b591d0'} glyphColor={'#000'} borderColor={'#000'} />
+						</AdvancedMarker>
+					))}
 
 					{selectedBuilding && (
 						<InfoWindow
@@ -136,9 +95,7 @@ function CampusMap() {
 									{selectedBuilding.fullname} ({selectedBuilding.shortname})
 								</h3>
 								<p>{selectedBuilding.address}</p>
-								<h4>
-									More Information:
-								</h4>
+								<h4>More Information:</h4>
 								<p>Room Number: {selectedBuilding.number}</p>
 								<p>Seats: {selectedBuilding.seats}</p>
 							</div>
@@ -146,8 +103,6 @@ function CampusMap() {
 					)}
 				</Map>
 			</APIProvider>
-
-			{!isLoaded && <div>Loading Map...</div>}
 		</div>
 	);
 }
