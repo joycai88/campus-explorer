@@ -20,6 +20,9 @@ function App() {
 			<main>
 				<div className="test-func">
 					<section>
+						<h2>
+							Map of UBC Buildings:
+						</h2>
 						<CampusMap />
 					</section>
 					<section>
