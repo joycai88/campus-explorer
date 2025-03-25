@@ -19,11 +19,9 @@ function App() {
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
-				// Fetch datasets
 				const fetchedDatasets = await api.listDatasets();
 				setDatasets(fetchedDatasets);
 
-				// Find rooms dataset
 				const roomDataset = fetchedDatasets.find(
 					(dataset) => dataset.kind === 'rooms'
 				);
@@ -34,7 +32,6 @@ function App() {
 
 				const datasetId = roomDataset.id;
 
-				// Fetch buildings response
 				const response = await api.performQuery(
 					JSON.stringify({
 						WHERE: {},

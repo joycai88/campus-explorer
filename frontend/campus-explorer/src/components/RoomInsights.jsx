@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import api from "../services/api";
 import '../index.css';
+import DistanceCalculator from "./DistanceCalculator";
 
 function RoomInsights({ datasets, buildingsResponse }) {
 	const [rooms, setRooms] = useState([]);
 	const [selectedRooms, setSelectedRooms] = useState([]);
-	// const [roomRelationships, setRoomRelationships] = useState([]);
-
 	useEffect(() => {
 		let roomDataset;
 		if (datasets.length > 0 && buildingsResponse.length > 0) {
@@ -88,25 +86,29 @@ function RoomInsights({ datasets, buildingsResponse }) {
 						Clear Selection
 					</button>
 				</div>
-				<div className="selected-rooms-list">
-					{selectedRooms.map((room) => (
-						<div key={room.id} className="selected-room-item">
-							<h3>{room.fullname}</h3>
-							<p>Short Name: {room.shortname}</p>
-							<p>Room Number: {room.number}</p>
-							<p>Address: {room.address}</p>
-							<p>Seats: {room.seats}</p>
-						</div>
-					))}
+					<div className="selected-rooms-list">
+						{selectedRooms.map((room) => (
+							<div key={room.id} className="selected-room-item">
+								<h3>{room.fullname}</h3>
+								<p>Short Name: {room.shortname}</p>
+								<p>Room Number: {room.number}</p>
+								<p>Address: {room.address}</p>
+								<p>Seats: {room.seats}</p>
+							</div>
+						))}
+					</div>
 				</div>
+
+			<div className="room-relationships">
+				<h3> Room Relationships </h3>
+				<DistanceCalculator selectedRooms={selectedRooms}/>
+
 			</div>
-		</div>
+			</div>
 
 
+			)
 
+			}
 
-)
-
-}
-
-export default RoomInsights;
+			export default RoomInsights;
