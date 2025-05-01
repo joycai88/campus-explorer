@@ -11,7 +11,7 @@ const center = {
 	lng: -123.2460, // UBC coordinates
 };
 
-const apiKey = "REMOVED";
+const apiKey = process.env.REACT_APP_API_KEY;
 
 function CampusMap({ datasets, buildingsResponse }) {
 	const [buildings, setBuildings] = useState([]);
